@@ -18,4 +18,4 @@ dump/
 *.bak*
 *.old*
 higherVolume/
-yarn.lock
+yarn.lock.DS_Store
