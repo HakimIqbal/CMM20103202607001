@@ -1,7 +1,7 @@
 module.exports = {
 	apps: [
 		{
-			name: 'happybirthday-ara',
+			name: 'Multimedia-PROJECT-FINAL',
 			script: 'server.js',
 			instances: 'max',
 			autorestart: true,

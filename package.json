@@ -1,12 +1,12 @@
 {
-	"name": "happybirthday-ara",
+	"name": "Multimedia-PROJECT-FINAL",
 	"version": "1.0.0",
 	"description": "Simple HTML5 game created for the birthday of my beloved girlfriend.",
 	"author": "HakimIqbal",
 	"main": "src/game.ts",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/HakimIqbal/happybirthday-ara"
+		"url": "https://github.com/HakimIqbal/CMM20103202607001"
 	},
 	"scripts": {
 		"start": "webpack-dev-server --config webpack/webpack.dev.js",
