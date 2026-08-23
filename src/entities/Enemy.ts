@@ -61,27 +61,52 @@ export class Enemy {
 	/** injected by the scene: does world-space (x, y) sit above solid ground? */
 	public hasGroundAt?: (x: number, y: number) => boolean;
 
+	private lastTurnAt: number = 0;
+
 	public update(): void {
 		if (this.dead || !this.sprite.body) return;
-		// turn around at walls
+
+		const vx = this.sprite.body.velocity.x;
+		const moving = Math.abs(vx) > 1;
+
+		// turn around at walls (always allowed)
 		if (this.sprite.body.blocked.left || this.sprite.body.blocked.right) {
-			this.sprite.setVelocityX(-this.sprite.body.velocity.x);
+			this.turn(vx);
+		} else if (moving) {
+			// ledge check with generous probe: 1/3 body width ahead, below feet
+			const dir = vx > 0 ? 1 : -1;
+			const probeOffset = this.sprite.body.width / 3 * dir;
+			const probeX = this.sprite.body.center.x + probeOffset;
+			const probeY = this.sprite.body.bottom + 6;
+			const now = this.scene.time.now;
+			const canTurn = now - this.lastTurnAt > 300; // anti flip-flop cooldown
+			if (
+				canTurn &&
+				this.hasGroundAt &&
+				!this.hasGroundAt(probeX, probeY)
+			) {
+				this.turn(vx);
+			}
 		}
-		// don't walk off ledges: check tile ahead+below; reverse before falling
-		const aheadX =
-			this.sprite.body.velocity.x > 0
-				? this.sprite.body.right + 4
-				: this.sprite.body.left - 4;
-		const probeY = this.sprite.body.bottom + 8;
-		if (this.hasGroundAt && !this.hasGroundAt(aheadX, probeY)) {
-			this.sprite.setVelocityX(-this.sprite.body.velocity.x);
-		}
+
 		this.sprite.setFlipX(this.sprite.body.velocity.x < 0);
+
 		// safety net: if it somehow fell out of the world, return to spawn
 		if (this.sprite.y > this.scene.height + 100) {
 			this.sprite.setPosition(this.spawnPoint.x, this.spawnPoint.y);
 			this.sprite.setVelocityX(this.speed);
 		}
+
+		// keep walking: ensure a minimum speed in the facing direction
+		if (Math.abs(this.sprite.body.velocity.x) < 5) {
+			const dir = this.sprite.body.blocked.left ? 1 : -1;
+			this.sprite.setVelocityX((dir || 1) * this.speed);
+		}
+	}
+
+	private turn(currentVx: number): void {
+		this.lastTurnAt = this.scene.time.now;
+		this.sprite.setVelocityX(-(currentVx || this.speed));
 	}
 
 	/**
