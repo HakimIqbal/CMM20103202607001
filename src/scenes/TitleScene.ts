@@ -21,7 +21,7 @@ export class TitleScene extends LevelScene {
 		const cx = w / 2;
 
 		this.add
-			.text(cx, h * 0.26, 'ARA', {
+			.text(cx, h * 0.22, 'PIXEL', {
 				fontFamily: 'Arcade',
 				fontSize: `${Math.round(w / 9)}px`,
 				color: '#ffffff',
@@ -32,7 +32,7 @@ export class TitleScene extends LevelScene {
 			.setDepth(10);
 
 		this.add
-			.text(cx, h * 0.4, 'ADVENTURE', {
+			.text(cx, h * 0.37, 'QUEST', {
 				fontFamily: 'Arcade',
 				fontSize: `${Math.round(w / 22)}px`,
 				color: '#ffe98a',
