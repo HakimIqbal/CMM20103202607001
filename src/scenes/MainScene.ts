@@ -61,6 +61,7 @@ export class MainScene extends LevelScene {
 		positions.forEach(pos => {
 			const enemy = new Enemy({ scene: this, position: pos });
 			enemy.create(pos, this.map.scalingFactor - 1);
+			enemy.mirrorPlayer = true;
 			enemy.hasGroundAt = (x: number, y: number) => {
 				const col = Math.floor(x / this.map.scalingFactor / 16);
 				const row = Math.floor(y / this.map.scalingFactor / 16);
@@ -154,7 +155,15 @@ export class MainScene extends LevelScene {
 		this.map.update();
 		this.player.update();
 		this.playerPrevBottom = this.player.sprite.body.bottom;
-		this.enemies.forEach(e => e.update());
+		const facing = this.gameInput.pressingLeftOrRight
+			? this.gameInput.pressingLeft
+				? -1
+				: 1
+			: 0;
+		this.enemies.forEach(e => {
+			e.setPlayerFacing(facing);
+			e.update();
+		});
 	}
 
 	private addColliders() {

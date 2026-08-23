@@ -62,6 +62,19 @@ export class Enemy {
 	public hasGroundAt?: (x: number, y: number) => boolean;
 
 	private lastTurnAt: number = 0;
+	/** when true, the slime mirrors the player's walking direction */
+	public mirrorPlayer: boolean = false;
+
+	/** called by the scene every frame with the player's facing direction (-1/1) */
+	public setPlayerFacing(dir: number): void {
+		if (!this.mirrorPlayer || this.dead || !this.sprite.body) return;
+		if (dir === 0) return;
+		const vx = this.sprite.body.velocity.x;
+		// only steer if currently moving the other way and turn-cooldown allows
+		if (vx * dir < 0 && this.scene.time.now - this.lastTurnAt > 300) {
+			this.turn(vx);
+		}
+	}
 
 	public update(): void {
 		if (this.dead || !this.sprite.body) return;
