@@ -34,11 +34,13 @@ export class LevelMap {
 		this.scene.cameras.main.setBackgroundColor('#448AFF');
 		this.map = this.scene.make.tilemap({ key: this.levelKey });
 		const tiles = this.map.addTilesetImage('atlas', 'tiles', 16, 16, 1, 2);
-		this.platforms = this.map.createDynamicLayer('platforms', tiles);
+		this.platforms = this.map.createDynamicLayer('platforms', tiles, 0, 0);
 		this.platforms.setScale(this.scaling);
+		this.platforms.y = this.scene.height - this.platforms.displayHeight;
 		this.platforms.setDepth(50);
-		this.platformObjects = this.map.createDynamicLayer('platform_objects', tiles);
+		this.platformObjects = this.map.createDynamicLayer('platform_objects', tiles, 0, 0);
 		this.platformObjects.setScale(this.scaling);
+		this.platformObjects.y = this.scene.height - this.platformObjects.displayHeight;
 		this.platformObjects.setDepth(45);
 		// collisions: any non-empty tile is solid
 		this.platforms.setCollisionByExclusion([-1]);
@@ -52,8 +54,9 @@ export class LevelMap {
 		const objects = this.map.getObjectLayer('objects');
 		objects.objects.forEach(o => {
 			const tiled = o as any;
+			const offsetY = this.scene.height - this.platforms.displayHeight;
 			const dx: number = tiled.x * this.scaling;
-			const dy: number = tiled.y * this.scaling;
+			const dy: number = offsetY + tiled.y * this.scaling;
 			if (tiled.name === 'startPosition') {
 				this.startPosition = { displayX: dx, displayY: dy } as LevelObject;
 			}

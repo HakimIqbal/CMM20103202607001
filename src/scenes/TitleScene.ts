@@ -24,7 +24,7 @@ export class TitleScene extends LevelScene {
 		const cx = this.width / 2;
 
 		this.add
-			.text(cx, this.height * 0.22, 'ARA', {
+			.text(cx, this.height * 0.22, 'KIKO', {
 				fontFamily: 'Arcade',
 				fontSize: '110px',
 				color: '#ffffff',
