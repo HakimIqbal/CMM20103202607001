@@ -155,11 +155,8 @@ export class MainScene extends LevelScene {
 		this.map.update();
 		this.player.update();
 		this.playerPrevBottom = this.player.sprite.body.bottom;
-		const facing = this.gameInput.pressingLeftOrRight
-			? this.gameInput.pressingLeft
-				? -1
-				: 1
-			: 0;
+		// facing = last direction the character looked (flipX persists while standing)
+		const facing = this.player.sprite.flipX ? -1 : 1;
 		this.enemies.forEach(e => {
 			e.setPlayerFacing(facing);
 			e.update();

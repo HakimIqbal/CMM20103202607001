@@ -68,10 +68,12 @@ export class Enemy {
 	/** called by the scene every frame with the player's facing direction (-1/1) */
 	public setPlayerFacing(dir: number): void {
 		if (!this.mirrorPlayer || this.dead || !this.sprite.body) return;
-		if (dir === 0) return;
+		const now = this.scene.time.now;
+		if (now - this.lastTurnAt <= 300) return;
 		const vx = this.sprite.body.velocity.x;
-		// only steer if currently moving the other way and turn-cooldown allows
-		if (vx * dir < 0 && this.scene.time.now - this.lastTurnAt > 300) {
+		const opposite = vx * dir < 0;         // walking the other way
+		const stalled = Math.abs(vx) < 5;      // stuck against something
+		if (opposite || stalled) {
 			this.turn(vx);
 		}
 	}
