@@ -5,7 +5,6 @@ const merge = require('webpack-merge');
 const common = require('./webpack.common');
 const JavaScriptObfuscator = require('webpack-obfuscator');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
-const { InjectManifest } = require('workbox-webpack-plugin');
 
 const prod = {
 	mode: 'production',
@@ -32,10 +31,9 @@ const prod = {
 			},
 			['vendors.*.js']
 		),
-		new InjectManifest({
-			swSrc: path.resolve(__dirname, '../src/pwa/sw.js'),
-			exclude: [/sw\.js$/, /audio.*\.ogg$/, /index\.html$/]
-		})
+		// Workbox precaching disabled during incremental development.
+		// src/pwa/sw.js is copied as-is by CopyWebpackPlugin (common config)
+		// and now self-unregisters to clear stale caches on clients.
 	]
 };
 
