@@ -9,6 +9,7 @@ export class LevelMap {
 	public doors: Doors;
 	private startPosition: LevelObject;
 	private coinPositions: Vector2Like[] = [];
+	private enemyPositions: Vector2Like[] = [];
 	private objectsLayer: Phaser.Tilemaps.ObjectLayer;
 	private scene: LevelScene;
 	private tiles: Phaser.Tilemaps.Tileset;
@@ -42,6 +43,7 @@ export class LevelMap {
 		});
 		this.objectsLayer = this.map.getObjectLayer('objects');
 		this.computeCoinPositions();
+		this.computeEnemyPositions();
 		this.startPosition = this.getObject('startPosition');
 		this.doors.create({ level: this });
 
@@ -92,6 +94,27 @@ export class LevelMap {
 			if (this.platforms.hasTileAt(col, row)) return row;
 		}
 		return null;
+	}
+
+	/**
+	 * Enemy spawn points: ground columns between coin spots, standing ON the surface.
+	 */
+	private computeEnemyPositions(): void {
+		const mapW = this.map.width;
+		const step = 14;
+		for (let x = 12; x < mapW - 6; x += step) {
+			const surfaceRow = this.findSurfaceRow(x);
+			if (surfaceRow == null) continue;
+			const displayX = x * 16 * this.scaling + 8 * this.scaling;
+			const displayY =
+				(this.scene.height - this.platforms.displayHeight) +
+				(surfaceRow - 1) * 16 * this.scaling;
+			this.enemyPositions.push({ x: displayX, y: displayY });
+		}
+	}
+
+	public getEnemyPositions(): Vector2Like[] {
+		return this.enemyPositions;
 	}
 
 	public get scalingFactor(): number {
