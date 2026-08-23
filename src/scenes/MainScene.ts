@@ -1,4 +1,5 @@
-import { Dialog, DoorState, LevelMap, LevelSprite } from '@src/components';
+import { Dialog, DoorState, Hud, LevelMap, LevelSprite } from '@src/components';
+import { Coin } from '@src/entities/Coin';
 import { MusicPlaylist } from '@src/components/MusicPlaylist';
 import { Player } from '@src/entities';
 
@@ -9,6 +10,9 @@ export class MainScene extends LevelScene {
 	private map: LevelMap;
 	private dialog: Dialog;
 	private giftsCount: number;
+	private coins: Coin[] = [];
+	private hud: Hud;
+	private score: number = 0;
 	private musicPlaylist: MusicPlaylist;
 
 	constructor() {
@@ -25,6 +29,7 @@ export class MainScene extends LevelScene {
 		super.preload();
 		this.map.preload();
 		this.player.preload();
+		new Coin({ scene: this }).preload();
 	}
 
 	public create() {
@@ -32,6 +37,24 @@ export class MainScene extends LevelScene {
 		this.map.create();
 		this.player.create({ position: this.map.getStartPosition() });
 		this.addColliders();
+		this.spawnCoins();
+		this.hud = new Hud({ scene: this });
+		this.hud.create();
+	}
+
+	private spawnCoins() {
+		Coin.ensureAnimation(this);
+		this.map.getCoinPositions().forEach(pos => {
+			const coin = new Coin({ scene: this });
+			const sprite = coin.create(pos);
+			this.coins.push(coin);
+			this.physics.add.overlap(this.player.sprite, sprite, () => {
+				if (coin.isCollected) return;
+				coin.collect();
+				this.score += 10;
+				this.hud.setScore(this.score);
+			});
+		});
 	}
 
 	public update(time: number, delta: number) {

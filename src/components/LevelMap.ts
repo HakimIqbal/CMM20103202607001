@@ -8,6 +8,7 @@ export class LevelMap {
 	public map: Phaser.Tilemaps.Tilemap;
 	public doors: Doors;
 	private startPosition: LevelObject;
+	private coinPositions: Vector2Like[] = [];
 	private objectsLayer: Phaser.Tilemaps.ObjectLayer;
 	private scene: LevelScene;
 	private tiles: Phaser.Tilemaps.Tileset;
@@ -40,6 +41,7 @@ export class LevelMap {
 			height: this.platforms.displayHeight
 		});
 		this.objectsLayer = this.map.getObjectLayer('objects');
+		this.computeCoinPositions();
 		this.startPosition = this.getObject('startPosition');
 		this.doors.create({ level: this });
 
@@ -65,6 +67,35 @@ export class LevelMap {
 	public getStartPosition(): Vector2Like {
 		const { displayX, displayY } = this.startPosition;
 		return { x: displayX, y: displayY };
+	}
+
+	/**
+	 * Derive coin spawn points: every ground/platform column top gets a coin
+	 * floating 3 tiles above it, skipping the immediate start area. Deterministic.
+	 */
+	private computeCoinPositions(): void {
+		const mapW = this.map.width;
+		const step = 9; // one coin every N columns
+		for (let x = 6; x < mapW - 4; x += step) {
+			const surfaceRow = this.findSurfaceRow(x);
+			if (surfaceRow == null) continue;
+			const displayX = x * 16 * this.scaling + 8 * this.scaling;
+			const displayY =
+				(this.scene.height - this.platforms.displayHeight) +
+				(surfaceRow - 3) * 16 * this.scaling;
+			this.coinPositions.push({ x: displayX, y: displayY });
+		}
+	}
+
+	private findSurfaceRow(col: number): number | null {
+		for (let row = 0; row < this.map.height; row++) {
+			if (this.platforms.hasTileAt(col, row)) return row;
+		}
+		return null;
+	}
+
+	public getCoinPositions(): Vector2Like[] {
+		return this.coinPositions;
 	}
 
 	public getObject(name: string): LevelObject {
