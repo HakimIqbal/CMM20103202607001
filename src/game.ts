@@ -1,6 +1,6 @@
 import 'phaser';
 
-import { MainScene } from './scenes/MainScene';
+import { TitleScene, GameScene, LevelCompleteScene, GameOverScene, WinScene } from './scenes';
 
 const config: GameConfig = {
 	type: Phaser.AUTO,
@@ -23,7 +23,7 @@ const config: GameConfig = {
 		mode: Phaser.Scale.FIT,
 		zoom: window.innerWidth / 1536
 	},
-	scene: [MainScene],
+	scene: [TitleScene, GameScene, LevelCompleteScene, GameOverScene, WinScene],
 	render: {
 		antialias: false,
 		pixelArt: true,
