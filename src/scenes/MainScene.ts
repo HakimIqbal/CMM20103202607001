@@ -1,4 +1,6 @@
 import { Dialog, DoorState, Hud, LevelMap, LevelSprite } from '@src/components';
+/* NOTE: door/loveChest systems temporarily disabled for Step 2 testing.
+   Will be reintroduced as the level goal in Step 3. */
 import { Coin } from '@src/entities/Coin';
 import { Enemy } from '@src/entities/Enemy';
 import { MusicPlaylist } from '@src/components/MusicPlaylist';
@@ -129,43 +131,7 @@ export class MainScene extends LevelScene {
 	private addColliders() {
 		this.physics.add.collider(this.map.platforms, this.player.sprite);
 		this.physics.add.collider(this.map.platformObjects, this.player.sprite);
-		this.physics.add.collider(this.map.doors.sprites, this.player.sprite);
-
-		this.physics.add.collider(
-			this.map.doors.questionAreas,
-			this.player.sprite,
-			this.handlePlayerCollidesQuestion
-		);
-
-		this.physics.add.collider(
-			this.map.doors.loveChest.sprite,
-			this.player.sprite,
-			this.handlePlayerCollidesChest
-		);
 	}
 
-	private handlePlayerCollidesQuestion = async (
-		question: Phaser.GameObjects.GameObject
-	) => {
-		if (this.dialog.isOpened) return;
 
-		const area = question as LevelSprite;
-		const index = +area.levelObject.type;
-		const door = this.map.doors.sprites[index];
-		if (door.state === DoorState.opened) return;
-
-		area.body.checkCollision.none = true;
-		this.player.toggleFreeze(true);
-		const count = await this.dialog.openDialog(index);
-		this.map.doors.openDoor(door);
-		this.player.toggleFreeze(false);
-
-		if (typeof count === 'number') {
-			this.giftsCount = count;
-		}
-	}
-
-	private handlePlayerCollidesChest = async () => {
-		await this.map.doors.loveChest.open(this.giftsCount);
-	}
 }

@@ -19,14 +19,15 @@ export class LevelMap {
 	constructor({ scene }: { scene: LevelScene }) {
 		this.scene = scene;
 		this.background = new LevelBackground({ scene });
-		this.doors = new Doors({ scene });
+		// doors disabled for step 2 testing
+		// this.doors = new Doors({ scene });
 	}
 
 	public preload() {
 		this.scene.load.image('tiles', 'assets/tilemaps/extruded.png');
 		this.scene.load.tilemapTiledJSON('map', 'assets/tilemaps/base.json');
 		this.background.preload();
-		this.doors.preload();
+		// this.doors.preload();
 	}
 
 	public create() {
@@ -45,7 +46,7 @@ export class LevelMap {
 		this.computeCoinPositions();
 		this.computeEnemyPositions();
 		this.startPosition = this.getObject('startPosition');
-		this.doors.create({ level: this });
+		// this.doors.create({ level: this });
 
 		this.scene.physics.world.setBounds(
 			0,
@@ -63,7 +64,7 @@ export class LevelMap {
 
 	public update() {
 		this.background.update();
-		this.doors.update();
+		// this.doors.update();
 	}
 
 	public getStartPosition(): Vector2Like {
