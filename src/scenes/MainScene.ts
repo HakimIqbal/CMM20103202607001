@@ -31,8 +31,9 @@ export class MainScene extends LevelScene {
 		super({ key: 'MainScene' });
 	}
 
-	public init(data: { level?: number }) {
+	public init(data: { level?: number; score?: number }) {
 		if (data && data.level) this.level = data.level;
+		if (data && data.score) this.score = data.score;
 
 		this.dialog = new Dialog();
 		this.player = new Player({ scene: this });
@@ -120,7 +121,12 @@ export class MainScene extends LevelScene {
 		}
 		if (this.lives <= 0) {
 			this.gameOver = true; // block further callbacks during restart
-			this.time.delayedCall(300, () => this.scene.restart(), [], this);
+			this.time.delayedCall(400, () => {
+				this.scene.start('GameOverScene', {
+					score: this.score,
+					level: this.level
+				});
+			}, [], this);
 			return;
 		}
 	}
@@ -174,8 +180,12 @@ export class MainScene extends LevelScene {
 		this.time.delayedCall(2200, () => {
 			banner.destroy();
 			this.finishing = false;
+			if (this.level >= 3) {
+				this.scene.start('WinScene', { score: this.score });
+				return;
+			}
 			this.level += 1;
-			this.scene.restart({ level: this.level });
+			this.scene.restart({ level: this.level, score: this.score });
 		}, [], this);
 	}
 
