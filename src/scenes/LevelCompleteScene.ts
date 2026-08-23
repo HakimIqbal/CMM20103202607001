@@ -21,10 +21,11 @@ export class LevelCompleteScene extends LevelScene {
 		this.cameras.main.setBackgroundColor('#448AFF');
 		const cx = this.width / 2;
 
+		const w = this.scale.width;
 		this.add
 			.text(cx, this.height * 0.3, 'LEVEL COMPLETE!', {
 				fontFamily: 'Arcade',
-				fontSize: '52px',
+				fontSize: `${Math.round(w / 22)}px`,
 				color: '#ffe98a',
 				stroke: '#2b3f8e',
 				strokeThickness: 8
@@ -34,7 +35,7 @@ export class LevelCompleteScene extends LevelScene {
 		this.add
 			.text(cx, this.height * 0.5, `SCORE ${String(this.score).padStart(6, '0')}`, {
 				fontFamily: 'Arcade',
-				fontSize: '32px',
+				fontSize: `${Math.round(w / 34)}px`,
 				color: '#ffffff'
 			})
 			.setOrigin(0.5);
@@ -42,7 +43,7 @@ export class LevelCompleteScene extends LevelScene {
 		const hint = this.add
 			.text(cx, this.height * 0.68, `GET READY FOR LEVEL ${this.level + 1}...`, {
 				fontFamily: 'Arcade',
-				fontSize: '22px',
+				fontSize: `${Math.round(w / 48)}px`,
 				color: '#dbe6ff'
 			})
 			.setOrigin(0.5);

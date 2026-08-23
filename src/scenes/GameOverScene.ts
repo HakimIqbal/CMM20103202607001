@@ -22,10 +22,11 @@ export class GameOverScene extends LevelScene {
 		this.cameras.main.setBackgroundColor('#1a2b5e');
 		const cx = this.width / 2;
 
+		const w = this.scale.width;
 		this.add
 			.text(cx, this.height * 0.28, 'GAME OVER', {
 				fontFamily: 'Arcade',
-				fontSize: '64px',
+				fontSize: `${Math.round(w / 18)}px`,
 				color: '#ff6b6b',
 				stroke: '#3d0e1a',
 				strokeThickness: 8
@@ -35,7 +36,7 @@ export class GameOverScene extends LevelScene {
 		this.add
 			.text(cx, this.height * 0.44, `SCORE ${String(this.score).padStart(6, '0')}`, {
 				fontFamily: 'Arcade',
-				fontSize: '30px',
+				fontSize: `${Math.round(w / 36)}px`,
 				color: '#ffffff'
 			})
 			.setOrigin(0.5);
@@ -43,7 +44,7 @@ export class GameOverScene extends LevelScene {
 		const retry = this.add
 			.text(cx, this.height * 0.62, isTouchDevice ? 'TAP TO RETRY LEVEL' : 'PRESS SPACE TO RETRY LEVEL', {
 				fontFamily: 'Arcade',
-				fontSize: '22px',
+				fontSize: `${Math.round(w / 48)}px`,
 				color: '#dbe6ff'
 			})
 			.setOrigin(0.5);

@@ -19,10 +19,11 @@ export class WinScene extends LevelScene {
 		this.cameras.main.setBackgroundColor('#448AFF');
 		const cx = this.width / 2;
 
+		const w = this.scale.width;
 		this.add
 			.text(cx, this.height * 0.26, 'YOU WIN!', {
 				fontFamily: 'Arcade',
-				fontSize: '72px',
+				fontSize: `${Math.round(w / 16)}px`,
 				color: '#ffe98a',
 				stroke: '#2b3f8e',
 				strokeThickness: 10
@@ -32,7 +33,7 @@ export class WinScene extends LevelScene {
 		this.add
 			.text(cx, this.height * 0.42, `FINAL SCORE ${String(this.score).padStart(6, '0')}`, {
 				fontFamily: 'Arcade',
-				fontSize: '30px',
+				fontSize: `${Math.round(w / 36)}px`,
 				color: '#ffffff'
 			})
 			.setOrigin(0.5);
@@ -40,7 +41,7 @@ export class WinScene extends LevelScene {
 		this.add
 			.text(cx, this.height * 0.56, 'THANKS FOR PLAYING', {
 				fontFamily: 'Arcade',
-				fontSize: '22px',
+				fontSize: `${Math.round(w / 48)}px`,
 				color: '#dbe6ff'
 			})
 			.setOrigin(0.5);
@@ -63,7 +64,7 @@ export class WinScene extends LevelScene {
 		const hint = this.add
 			.text(cx, this.height * 0.74, 'PRESS SPACE TO PLAY AGAIN', {
 				fontFamily: 'Arcade',
-				fontSize: '20px',
+				fontSize: `${Math.round(w / 52)}px`,
 				color: '#ffffff'
 			})
 			.setOrigin(0.5);
