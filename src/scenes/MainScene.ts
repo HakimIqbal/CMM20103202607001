@@ -22,10 +22,17 @@ export class MainScene extends LevelScene {
 	private playerPrevBottom: number = 0;
 	private invincibleUntil: number = 0;
 	private heartIcons: Phaser.GameObjects.Image[] = [];
+	private door!: Phaser.GameObjects.Sprite;
+	private level: number = 1;
+	private finishing: boolean = false;
 	private musicPlaylist: MusicPlaylist;
 
 	constructor() {
 		super({ key: 'MainScene' });
+	}
+
+	public init(data: { level?: number }) {
+		if (data && data.level) this.level = data.level;
 
 		this.dialog = new Dialog();
 		this.player = new Player({ scene: this });
@@ -40,6 +47,10 @@ export class MainScene extends LevelScene {
 		this.player.preload();
 		new Coin({ scene: this }).preload();
 		new Enemy({ scene: this, position: { x: 0, y: 0 } }).preload();
+		this.load.spritesheet('door', 'assets/sprites/door.png', {
+			frameWidth: 54,
+			frameHeight: 141
+		});
 	}
 
 	public create() {
@@ -50,6 +61,7 @@ export class MainScene extends LevelScene {
 		this.addColliders();
 		this.spawnCoins();
 		this.spawnEnemies();
+		this.spawnGoalDoor();
 		this.hud = new Hud({ scene: this });
 		this.hud.create();
 		this.hud.setLives(this.lives);
@@ -135,6 +147,41 @@ export class MainScene extends LevelScene {
 
 	/** hearts row in HUD */
 	// (rendered by Hud via setLives)
+
+	private spawnGoalDoor() {
+		const pos = this.map.getDoorPosition();
+		this.door = this.add.sprite(pos.x, pos.y - 70 * (this.map.scalingFactor - 1), 'door');
+		this.door.setDepth(46);
+		this.physics.add.overlap(this.player.sprite, this.door, () => this.winLevel());
+	}
+
+	private winLevel() {
+		if (this.finishing) return;
+		this.finishing = true;
+		this.player.toggleFreeze(true);
+		const w = this.scale.width;
+		const banner = this.add
+			.text(this.cameras.main.midPoint.x, this.cameras.main.midPoint.y, 'LEVEL COMPLETE!', {
+				fontFamily: 'Arcade',
+				fontSize: `${Math.round(w / 24)}px`,
+				color: '#ffe98a',
+				stroke: '#2b3f8e',
+				strokeThickness: 6
+			})
+			.setOrigin(0.5)
+			.setDepth(80)
+			.setScrollFactor(0);
+		this.time.delayedCall(2200, () => {
+			banner.destroy();
+			this.finishing = false;
+			this.level += 1;
+			this.scene.restart({ level: this.level });
+		}, [], this);
+	}
+
+	public get currentLevel(): number {
+		return this.level;
+	}
 
 	private spawnCoins() {
 		Coin.ensureAnimation(this);

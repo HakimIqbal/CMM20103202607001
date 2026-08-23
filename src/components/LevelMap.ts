@@ -45,6 +45,7 @@ export class LevelMap {
 		this.objectsLayer = this.map.getObjectLayer('objects');
 		this.computeCoinPositions();
 		this.computeEnemyPositions();
+		this.computeDoorPosition();
 		this.startPosition = this.getObject('startPosition');
 		// this.doors.create({ level: this });
 
@@ -97,6 +98,16 @@ export class LevelMap {
 		return null;
 	}
 
+	private computeDoorPosition(): void {
+		let col = this.map.width - 2;
+		while (col > 0 && this.findSurfaceRow(col) == null) col--;
+		const row = this.findSurfaceRow(col) || 25;
+		this.doorPosition = {
+			x: col * 16 * this.scaling,
+			y: (this.scene.height - this.platforms.displayHeight) + row * 16 * this.scaling
+		};
+	}
+
 	/**
 	 * Enemy spawn points: ground columns between coin spots, standing ON the surface.
 	 */
@@ -116,6 +127,13 @@ export class LevelMap {
 
 	public getEnemyPositions(): Vector2Like[] {
 		return this.enemyPositions;
+	}
+
+	private doorPosition: Vector2Like = { x: 0, y: 0 };
+
+	/** door sits on the last solid column of the map */
+	public getDoorPosition(): Vector2Like {
+		return this.doorPosition;
 	}
 
 	public get scalingFactor(): number {
