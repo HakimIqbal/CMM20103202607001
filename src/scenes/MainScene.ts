@@ -3,6 +3,7 @@ import { Dialog, DoorState, Hud, LevelMap, LevelSprite } from '@src/components';
    Will be reintroduced as the level goal in Step 3. */
 import { Coin } from '@src/entities/Coin';
 import { Enemy } from '@src/entities/Enemy';
+import { Sfx } from '@src/components/Sfx';
 import { MusicPlaylist } from '@src/components/MusicPlaylist';
 import { Player } from '@src/entities';
 
@@ -22,6 +23,7 @@ export class MainScene extends LevelScene {
 	private playerPrevBottom: number = 0;
 	private invincibleUntil: number = 0;
 	private heartIcons: Phaser.GameObjects.Image[] = [];
+	private sfx!: Sfx;
 	private door!: Phaser.GameObjects.Sprite;
 	private level: number = 1;
 	private finishing: boolean = false;
@@ -48,6 +50,8 @@ export class MainScene extends LevelScene {
 		this.player.preload();
 		new Coin({ scene: this }).preload();
 		new Enemy({ scene: this, position: { x: 0, y: 0 } }).preload();
+		this.sfx = new Sfx({ scene: this });
+		this.sfx.preload();
 		this.load.spritesheet('door', 'assets/sprites/door.png', {
 			frameWidth: 54,
 			frameHeight: 141
@@ -66,6 +70,7 @@ export class MainScene extends LevelScene {
 		this.hud = new Hud({ scene: this });
 		this.hud.create();
 		this.hud.setLives(this.lives);
+		this.sfx.create();
 	}
 
 	private spawnEnemies() {
@@ -100,6 +105,7 @@ export class MainScene extends LevelScene {
 		if (result === 'stomp') {
 			this.score += 50;
 			this.hud.setScore(this.score);
+			this.sfx.play('sfx_stomp');
 			// bounce player off the squashed slime
 			this.player.sprite.setVelocityY(-450);
 		} else {
@@ -112,6 +118,7 @@ export class MainScene extends LevelScene {
 		this.lives -= 1;
 		this.hud.setLives(this.lives);
 		if (!fromPit) {
+			this.sfx.play('sfx_hurt');
 			this.invincibleUntil = this.time.now + 1500;
 			this.cameras.main.shake(120, 0.008);
 			this.player.sprite.setTint(0xff6b6b);
@@ -120,7 +127,8 @@ export class MainScene extends LevelScene {
 			}, [], this);
 		}
 		if (this.lives <= 0) {
-			this.gameOver = true; // block further callbacks during restart
+			this.gameOver = true;
+			this.sfx.play('sfx_gameover');
 			this.time.delayedCall(400, () => {
 				this.scene.start('GameOverScene', {
 					score: this.score,
@@ -164,6 +172,7 @@ export class MainScene extends LevelScene {
 	private winLevel() {
 		if (this.finishing) return;
 		this.finishing = true;
+		this.sfx.play('sfx_win');
 		this.player.toggleFreeze(true);
 		const w = this.scale.width;
 		const banner = this.add
@@ -204,6 +213,7 @@ export class MainScene extends LevelScene {
 				coin.collect();
 				this.score += 10;
 				this.hud.setScore(this.score);
+				this.sfx.play('sfx_coin');
 			});
 		});
 	}
