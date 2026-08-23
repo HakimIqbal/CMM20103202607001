@@ -1,13 +1,13 @@
 import { LevelScene } from '@src/scenes';
-import { isTouchDevice } from '@src/utils';
 
 /**
  * In-game HUD: score, hearts (lives), level label, level banner.
+ * Positions and font sizes adapt to the live canvas size (RESIZE scale mode).
  */
 export class Hud {
 	private scene: LevelScene;
-	private scoreText: Phaser.GameObjects.Text;
-	private levelText: Phaser.GameObjects.Text;
+	private scoreText?: Phaser.GameObjects.Text;
+	private levelText?: Phaser.GameObjects.Text;
 	private hearts: Phaser.GameObjects.Image[] = [];
 	private banner?: Phaser.GameObjects.Text;
 
@@ -29,42 +29,63 @@ export class Hud {
 		lives: number;
 	}) {
 		const fontFamily = 'Arcade';
+		const fontSize = `${Math.max(18, Math.round(this.scene.scale.width / 55))}px`;
 
-		this.scoreText = this.scene.add.text(24, 18, '', {
+		this.scoreText = this.scene.add.text(0, 0, '', {
 			fontFamily,
-			fontSize: '26px',
+			fontSize,
 			color: '#ffe98a',
 			stroke: '#2b3f8e',
 			strokeThickness: 4
 		});
 		this.scoreText.setScrollFactor(0).setDepth(60);
 
-		this.levelText = this.scene.add
-			.text(this.scene.width / 2, 18, `LEVEL ${level}`, {
-				fontFamily,
-				fontSize: '26px',
-				color: '#ffffff',
-				stroke: '#2b3f8e',
-				strokeThickness: 4
-			})
-			.setOrigin(0.5, 0);
+		this.levelText = this.scene.add.text(0, 0, `LEVEL ${level}`, {
+			fontFamily,
+			fontSize,
+			color: '#ffffff',
+			stroke: '#2b3f8e',
+			strokeThickness: 4
+		});
+		this.levelText.setOrigin(0.5, 0);
 		this.levelText.setScrollFactor(0).setDepth(60);
 
+		const heartScale = Math.max(1, this.scene.scale.width / 900);
 		for (let i = 0; i < 3; i++) {
-			const h = this.scene.add.image(
-				this.scene.width - 40 - i * 56,
-				36,
-				'heart'
-			);
-			h.setScale(1.6).setScrollFactor(0).setDepth(60);
+			const h = this.scene.add.image(0, 0, 'heart');
+			h.setScale(heartScale * 1.6).setScrollFactor(0).setDepth(60);
 			this.hearts.push(h);
 		}
+
+		this.layout();
+
+		// keep HUD glued to corners when the window resizes
+		this.scene.scale.on('resize', () => this.layout());
+
 		this.setScore(score);
 		this.setLives(lives);
 	}
 
+	private layout() {
+		if (!this.scoreText || !this.levelText) return;
+		const w = this.scene.scale.width;
+		const gap = Math.max(44, w / 26);
+
+		this.scoreText.setPosition(Math.round(w * 0.02), Math.round(w * 0.012));
+		this.levelText.setPosition(Math.round(w / 2), Math.round(w * 0.012));
+
+		const heartScale = Math.max(1, w / 900) * 1.6;
+		const y = Math.round(w * 0.012 + 20 * heartScale);
+		this.hearts.forEach((h, i) => {
+			h.setScale(heartScale);
+			h.setPosition(Math.round(w - w * 0.02 - i * gap), y);
+		});
+	}
+
 	public setScore(score: number) {
-		this.scoreText.setText(`SCORE ${String(score).padStart(6, '0')}`);
+		if (this.scoreText) {
+			this.scoreText.setText(`SCORE ${String(score).padStart(6, '0')}`);
+		}
 	}
 
 	public setLives(lives: number) {
@@ -72,10 +93,12 @@ export class Hud {
 	}
 
 	public showLevelBanner(level: number) {
+		const w = this.scene.scale.width;
+		const h = this.scene.scale.height;
 		this.banner = this.scene.add
-			.text(this.scene.width / 2, this.scene.height / 2 - 60, `LEVEL ${level}`, {
+			.text(w / 2, h / 2 - h * 0.08, `LEVEL ${level}`, {
 				fontFamily: 'Arcade',
-				fontSize: '64px',
+				fontSize: `${Math.max(40, Math.round(w / 22))}px`,
 				color: '#ffffff',
 				stroke: '#2b3f8e',
 				strokeThickness: 8

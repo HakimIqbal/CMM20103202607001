@@ -16,12 +16,8 @@ const config: GameConfig = {
 		default: 'arcade'
 	},
 	scale: {
-		width: 1536,
-		height: 864,
-		autoCenter: Phaser.Scale.CENTER_BOTH,
-		autoRound: true,
-		mode: Phaser.Scale.FIT,
-		zoom: window.innerWidth / 1536
+		mode: Phaser.Scale.RESIZE,
+		autoRound: true
 	},
 	scene: [TitleScene, GameScene, LevelCompleteScene, GameOverScene, WinScene],
 	render: {
