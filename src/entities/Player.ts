@@ -83,30 +83,20 @@ export class Player {
 
 	private async checkDeath() {
 		if (this.dead) return;
-		if (this.sprite.y >= this.scene.height) {
+		if (this.sprite.y >= this.scene.height + 50) {
 			this.dead = true;
-			this.scene.cameras.main.stopFollow();
-			await sleep(100);
-			await this.createDeathParticles();
-			const cb = this.onFallOut;
-			this.dead = false;
-			cb();
+			try {
+				this.scene.cameras.main.stopFollow();
+				this.sprite.setVisible(false);
+				await sleep(300);
+			} finally {
+				const cb = this.onFallOut;
+				this.dead = false;
+				cb();
+			}
 		}
 	}
 
-	private async createDeathParticles() {
-		this.scene.particles.hearts.setDepth(51).createEmitter({
-			x: this.sprite.x,
-			y: this.scene.height,
-			speed: 500,
-			gravityY: 1100,
-			quantity: 5,
-			maxParticles: 5,
-			angle: { min: 230, max: 310 },
-			lifespan: 1500
-		});
-		await sleep(1500);
-	}
 
 	private walk(): void {
 		const onFloor = this.sprite.body.onFloor();

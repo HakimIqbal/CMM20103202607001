@@ -18,6 +18,7 @@ export class MainScene extends LevelScene {
 	private hud: Hud;
 	private score: number = 0;
 	private lives: number = 3;
+	private gameOver: boolean = false;
 	private playerPrevBottom: number = 0;
 	private invincibleUntil: number = 0;
 	private heartIcons: Phaser.GameObjects.Image[] = [];
@@ -88,7 +89,7 @@ export class MainScene extends LevelScene {
 	}
 
 	private loseHeart(fromPit: boolean = false) {
-		if (this.lives <= 0) return;
+		if (this.gameOver || this.lives <= 0) return;
 		this.lives -= 1;
 		this.hud.setLives(this.lives);
 		if (!fromPit) {
@@ -100,8 +101,8 @@ export class MainScene extends LevelScene {
 			}, [], this);
 		}
 		if (this.lives <= 0) {
-			// full reset only on game over (Step 4 replaces with Game Over screen)
-			this.scene.restart();
+			this.gameOver = true; // block further callbacks during restart
+			this.time.delayedCall(300, () => this.scene.restart(), [], this);
 			return;
 		}
 	}
@@ -114,11 +115,12 @@ export class MainScene extends LevelScene {
 	private loseHeartAsync(fromPit: boolean): Promise<void> {
 		return new Promise(resolve => {
 			this.loseHeart(fromPit);
-			if (this.lives > 0) {
+			if (!this.gameOver && this.lives > 0) {
 				// respawn at start position without recreating the scene
 				const pos = this.map.getStartPosition();
 				this.player.sprite.setPosition(pos.x, pos.y - this.player.sprite.displayHeight);
 				this.player.sprite.setVelocity(0, 0);
+				this.player.sprite.setVisible(true);
 				this.cameras.main.startFollow(this.player.sprite);
 			}
 			resolve();
