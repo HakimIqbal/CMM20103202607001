@@ -78,6 +78,9 @@ export class Player {
 		}
 	}
 
+	/** set by the scene: called when the player falls into a pit */
+	public onFallOut: () => void = () => {};
+
 	private async checkDeath() {
 		if (this.dead) return;
 		if (this.sprite.y >= this.scene.height) {
@@ -85,8 +88,9 @@ export class Player {
 			this.scene.cameras.main.stopFollow();
 			await sleep(100);
 			await this.createDeathParticles();
-			this.scene.scene.restart();
+			const cb = this.onFallOut;
 			this.dead = false;
+			cb();
 		}
 	}
 

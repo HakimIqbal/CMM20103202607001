@@ -45,6 +45,7 @@ export class MainScene extends LevelScene {
 		super.create();
 		this.map.create();
 		this.player.create({ position: this.map.getStartPosition() });
+		this.player.onFallOut = () => void this.handleFallOut();
 		this.addColliders();
 		this.spawnCoins();
 		this.spawnEnemies();
@@ -86,21 +87,42 @@ export class MainScene extends LevelScene {
 		}
 	}
 
-	private loseHeart() {
+	private loseHeart(fromPit: boolean = false) {
 		if (this.lives <= 0) return;
 		this.lives -= 1;
 		this.hud.setLives(this.lives);
-		this.invincibleUntil = this.time.now + 1500;
-		// red flash + knockback
-		this.cameras.main.shake(120, 0.008);
-		this.player.sprite.setTint(0xff6b6b);
-		this.time.delayedCall(400, () => {
-			if (this.player.sprite.active) this.player.sprite.clearTint();
-		}, [], this);
-		if (this.lives <= 0) {
-			// Step 4 will replace this with a Game Over screen; for now restart level
-			this.scene.restart();
+		if (!fromPit) {
+			this.invincibleUntil = this.time.now + 1500;
+			this.cameras.main.shake(120, 0.008);
+			this.player.sprite.setTint(0xff6b6b);
+			this.time.delayedCall(400, () => {
+				if (this.player.sprite.active) this.player.sprite.clearTint();
+			}, [], this);
 		}
+		if (this.lives <= 0) {
+			// full reset only on game over (Step 4 replaces with Game Over screen)
+			this.scene.restart();
+			return;
+		}
+	}
+
+	/** fell into a pit: -1 heart, respawn at start position, keep score & coins */
+	private async handleFallOut() {
+		await this.loseHeartAsync(true);
+	}
+
+	private loseHeartAsync(fromPit: boolean): Promise<void> {
+		return new Promise(resolve => {
+			this.loseHeart(fromPit);
+			if (this.lives > 0) {
+				// respawn at start position without recreating the scene
+				const pos = this.map.getStartPosition();
+				this.player.sprite.setPosition(pos.x, pos.y - this.player.sprite.displayHeight);
+				this.player.sprite.setVelocity(0, 0);
+				this.cameras.main.startFollow(this.player.sprite);
+			}
+			resolve();
+		});
 	}
 
 	/** hearts row in HUD */
