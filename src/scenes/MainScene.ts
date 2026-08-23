@@ -61,6 +61,11 @@ export class MainScene extends LevelScene {
 		positions.forEach(pos => {
 			const enemy = new Enemy({ scene: this, position: pos });
 			enemy.create(pos, this.map.scalingFactor - 1);
+			enemy.hasGroundAt = (x: number, y: number) => {
+				const col = Math.floor(x / this.map.scalingFactor / 16);
+				const row = Math.floor(y / this.map.scalingFactor / 16);
+				return this.map.platforms.hasTileAt(col, row);
+			};
 			this.enemies.push(enemy);
 			this.physics.add.collider(enemy.sprite, this.map.platforms);
 			this.physics.add.collider(enemy.sprite, this.map.platformObjects);

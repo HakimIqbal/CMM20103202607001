@@ -53,8 +53,13 @@ export class Enemy {
 		this.sprite.setScale(scale);
 		this.sprite.body.setSize(24, 18);
 		this.sprite.setDepth(47);
+		this.spawnPoint = { x: position.x, y: position.y };
 		this.sprite.setVelocityX(this.speed);
 	}
+
+	private spawnPoint: Vector2Like = { x: 0, y: 0 };
+	/** injected by the scene: does world-space (x, y) sit above solid ground? */
+	public hasGroundAt?: (x: number, y: number) => boolean;
 
 	public update(): void {
 		if (this.dead || !this.sprite.body) return;
@@ -62,7 +67,21 @@ export class Enemy {
 		if (this.sprite.body.blocked.left || this.sprite.body.blocked.right) {
 			this.sprite.setVelocityX(-this.sprite.body.velocity.x);
 		}
+		// don't walk off ledges: check tile ahead+below; reverse before falling
+		const aheadX =
+			this.sprite.body.velocity.x > 0
+				? this.sprite.body.right + 4
+				: this.sprite.body.left - 4;
+		const probeY = this.sprite.body.bottom + 8;
+		if (this.hasGroundAt && !this.hasGroundAt(aheadX, probeY)) {
+			this.sprite.setVelocityX(-this.sprite.body.velocity.x);
+		}
 		this.sprite.setFlipX(this.sprite.body.velocity.x < 0);
+		// safety net: if it somehow fell out of the world, return to spawn
+		if (this.sprite.y > this.scene.height + 100) {
+			this.sprite.setPosition(this.spawnPoint.x, this.spawnPoint.y);
+			this.sprite.setVelocityX(this.speed);
+		}
 	}
 
 	/**
