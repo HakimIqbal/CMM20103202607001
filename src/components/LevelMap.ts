@@ -94,6 +94,10 @@ export class LevelMap {
 		return null;
 	}
 
+	public get scalingFactor(): number {
+		return this.scaling;
+	}
+
 	public getCoinPositions(): Vector2Like[] {
 		return this.coinPositions;
 	}

@@ -46,7 +46,7 @@ export class MainScene extends LevelScene {
 		Coin.ensureAnimation(this);
 		this.map.getCoinPositions().forEach(pos => {
 			const coin = new Coin({ scene: this });
-			const sprite = coin.create(pos);
+			const sprite = coin.create(pos, this.map.scalingFactor);
 			this.coins.push(coin);
 			this.physics.add.overlap(this.player.sprite, sprite, () => {
 				if (coin.isCollected) return;

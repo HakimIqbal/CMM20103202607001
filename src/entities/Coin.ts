@@ -37,13 +37,14 @@ export class Coin {
 		}
 	}
 
-	public create(position: Vector2Like): PhSprite {
+	public create(position: Vector2Like, scale: number = 1): PhSprite {
 		Coin.ensureAnimation(this.scene);
 		this.sprite = this.scene.physics.add.sprite(
 			position.x,
 			position.y,
 			'coin'
 		) as PhSprite;
+		this.sprite.setScale(scale);
 		this.sprite.play('coin_spin');
 		this.sprite.body.setAllowGravity(false);
 		this.sprite.body.setSize(12, 12);
