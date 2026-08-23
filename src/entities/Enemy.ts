@@ -62,46 +62,81 @@ export class Enemy {
 	public hasGroundAt?: (x: number, y: number) => boolean;
 
 	private lastTurnAt: number = 0;
+	private nextHopAt: number = 0;
+	private stuckSince: number = 0;
 	/** when true, the slime mirrors the player's walking direction */
 	public mirrorPlayer: boolean = false;
 
 	/** called by the scene every frame with the player's facing direction (-1/1) */
 	public setPlayerFacing(dir: number): void {
-		if (!this.mirrorPlayer || this.dead || !this.sprite.body) return;
-		const now = this.scene.time.now;
-		if (now - this.lastTurnAt <= 300) return;
-		const vx = this.sprite.body.velocity.x;
-		const opposite = vx * dir < 0;         // walking the other way
-		const stalled = Math.abs(vx) < 5;      // stuck against something
-		if (opposite || stalled) {
-			this.turn(vx);
-		}
+		this.desiredDir = dir;
 	}
+
+	private desiredDir: number = 0;
 
 	public update(): void {
 		if (this.dead || !this.sprite.body) return;
-
+		const now = this.scene.time.now;
 		const vx = this.sprite.body.velocity.x;
-		const moving = Math.abs(vx) > 1;
 
-		// turn around at walls (always allowed)
-		if (this.sprite.body.blocked.left || this.sprite.body.blocked.right) {
-			this.turn(vx);
-		} else if (moving) {
-			// ledge check with generous probe: 1/3 body width ahead, below feet
+		const wallHit =
+			this.sprite.body.blocked.left ? -1 :
+			this.sprite.body.blocked.right ? 1 : 0;
+
+		// ---- priority 1: SAFETY --------------------------------------
+		if (wallHit !== 0 && now - this.lastTurnAt > 250) {
+			this.lastTurnAt = now;
+			this.sprite.setVelocityX(-wallHit * this.speed);
+		} else if (
+			vx !== 0 &&
+			now - this.lastTurnAt > 250 &&
+			this.hasGroundAt
+		) {
 			const dir = vx > 0 ? 1 : -1;
-			const probeOffset = this.sprite.body.width / 3 * dir;
-			const probeX = this.sprite.body.center.x + probeOffset;
+			const probeX = this.sprite.body.center.x + (this.sprite.body.width / 3) * dir;
 			const probeY = this.sprite.body.bottom + 6;
-			const now = this.scene.time.now;
-			const canTurn = now - this.lastTurnAt > 300; // anti flip-flop cooldown
-			if (
-				canTurn &&
-				this.hasGroundAt &&
-				!this.hasGroundAt(probeX, probeY)
-			) {
-				this.turn(vx);
+			if (!this.hasGroundAt(probeX, probeY)) {
+				this.lastTurnAt = now;
+				this.sprite.setVelocityX(-dir * this.speed);
 			}
+		}
+
+		// ---- priority 2: MIRROR PLAYER -------------------------------
+		if (
+			this.mirrorPlayer &&
+			this.desiredDir !== 0 &&
+			wallHit !== this.desiredDir &&          // not pinned by a wall on that side
+			now - this.lastTurnAt > 400 &&
+			vx * this.desiredDir < 0                // moving opposite to player
+		) {
+			this.lastTurnAt = now;
+			this.sprite.setVelocityX(this.desiredDir * this.speed);
+		}
+
+		// ---- priority 3: NEVER FREEZE (hop when stuck) ---------------
+		const stalledNow = Math.abs(this.sprite.body.velocity.x) < 8;
+		if (stalledNow) {
+			if (this.stuckSince === 0) this.stuckSince = now;
+			else if (now - this.stuckSince > 600) {
+				// hop toward desired dir (or flip if unsafe)
+				const d = this.desiredDir !== 0 ? this.desiredDir : (vx >= 0 ? 1 : -1);
+				this.sprite.setVelocity(d * this.speed * 1.4, -350);
+				this.stuckSince = 0;
+				this.lastTurnAt = now;
+			}
+		} else {
+			this.stuckSince = 0;
+		}
+
+		// ---- periodic hop for liveliness ------------------------------
+		if (this.nextHopAt === 0) this.nextHopAt = now + Phaser.Math.Between(1800, 3200);
+		if (
+			now > this.nextHopAt &&
+			this.sprite.body.onFloor() &&
+			!this.dead
+		) {
+			this.nextHopAt = now + Phaser.Math.Between(1800, 3200);
+			this.sprite.setVelocityY(-300);
 		}
 
 		this.sprite.setFlipX(this.sprite.body.velocity.x < 0);
@@ -110,12 +145,6 @@ export class Enemy {
 		if (this.sprite.y > this.scene.height + 100) {
 			this.sprite.setPosition(this.spawnPoint.x, this.spawnPoint.y);
 			this.sprite.setVelocityX(this.speed);
-		}
-
-		// keep walking: ensure a minimum speed in the facing direction
-		if (Math.abs(this.sprite.body.velocity.x) < 5) {
-			const dir = this.sprite.body.blocked.left ? 1 : -1;
-			this.sprite.setVelocityX((dir || 1) * this.speed);
 		}
 	}
 
