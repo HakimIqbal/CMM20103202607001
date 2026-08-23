@@ -1,3 +1,5 @@
+export * from './Dialog';
+export * from './Doors';
 export * from './LevelBackground';
 export * from './LevelMap';
-export * from './Hud';
+export * from './LoveChest';

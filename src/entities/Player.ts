@@ -1,5 +1,5 @@
 import { LevelScene } from '@src/scenes';
-import { sleep } from '@src/utils';
+import { getCursorPressDuration, sleep } from '@src/utils';
 
 type PhAnimation = Phaser.Animations.Animation;
 type PhSprite = Phaser.Physics.Arcade.Sprite & {
@@ -30,9 +30,6 @@ export class Player {
 	private frozen: boolean = false;
 	private dead: boolean = false;
 
-	/** set by GameScene so death can decrement lives instead of plain restart */
-	public onFallOut: () => void = () => {};
-
 	constructor({ scene }: { scene: LevelScene }) {
 		this.scene = scene;
 	}
@@ -57,7 +54,7 @@ export class Player {
 
 	public update(): void {
 		this.applyControls();
-		this.checkFallOut();
+		this.checkDeath();
 	}
 
 	public toggleFreeze(frozen: boolean) {
@@ -66,7 +63,7 @@ export class Player {
 	}
 
 	private applyControls() {
-		if (this.frozen || this.dead) return;
+		if (this.frozen) return;
 		this.fall();
 		if (this.scene.gameInput.pressingUp && !this.scene.gameInput.pressingDown) {
 			this.jump();
@@ -81,26 +78,22 @@ export class Player {
 		}
 	}
 
-	/**
-	 * Fell into a pit. Reports to the scene (lives -1, respawn or game over).
-	 * Original behavior restarted the scene; new flow delegates upward.
-	 */
-	private async checkFallOut() {
+	private async checkDeath() {
 		if (this.dead) return;
-		if (this.sprite.y >= this.scene.height + 100) {
+		if (this.sprite.y >= this.scene.height) {
 			this.dead = true;
-			await this.playDeathFx();
-			const cb = this.onFallOut;
+			this.scene.cameras.main.stopFollow();
+			await sleep(100);
+			await this.createDeathParticles();
+			this.scene.scene.restart();
 			this.dead = false;
-			cb();
 		}
 	}
 
-	private async playDeathFx() {
-		this.scene.cameras.main.shake(200, 0.01);
+	private async createDeathParticles() {
 		this.scene.particles.hearts.setDepth(51).createEmitter({
 			x: this.sprite.x,
-			y: this.scene.height - 40,
+			y: this.scene.height,
 			speed: 500,
 			gravityY: 1100,
 			quantity: 5,
@@ -108,14 +101,7 @@ export class Player {
 			angle: { min: 230, max: 310 },
 			lifespan: 1500
 		});
-		this.sprite.setVisible(false);
-		this.sprite.body.enable = false;
-		await sleep(1200);
-	}
-
-	public hurtFrom(sideContact: boolean): boolean {
-		// returns true if the hit was lethal (handled by scene via lives)
-		return sideContact && !this.dead;
+		await sleep(1500);
 	}
 
 	private walk(): void {
@@ -193,7 +179,7 @@ export class Player {
 		}
 	}
 
-	public stop(): void {
+	private stop(): void {
 		this.sprite.anims.stop();
 		this.sprite.setVelocityX(0);
 		if (this.scene.gameInput.pressingDown) {

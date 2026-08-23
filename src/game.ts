@@ -1,6 +1,6 @@
 import 'phaser';
 
-import { TitleScene, GameScene, LevelCompleteScene, GameOverScene, WinScene } from './scenes';
+import { MainScene } from './scenes/MainScene';
 
 const config: GameConfig = {
 	type: Phaser.AUTO,
@@ -16,10 +16,14 @@ const config: GameConfig = {
 		default: 'arcade'
 	},
 	scale: {
-		mode: Phaser.Scale.RESIZE,
-		autoRound: true
+		width: 1536,
+		height: 864,
+		autoCenter: Phaser.Scale.CENTER_BOTH,
+		autoRound: true,
+		mode: Phaser.Scale.FIT,
+		zoom: window.innerWidth / 1536
 	},
-	scene: [TitleScene, GameScene, LevelCompleteScene, GameOverScene, WinScene],
+	scene: [MainScene],
 	render: {
 		antialias: false,
 		pixelArt: true,

@@ -1,11 +1,6 @@
 import { LevelScene } from '@src/scenes';
 import { getCursorPressDuration, PhCursorKeys } from '@src/utils';
 
-/**
- * Keyboard + touch input. UNCHANGED core from the original game
- * (screen zones: left third = left, right third = right, top = jump),
- * now with visible on-screen buttons for mobile.
- */
 export class GameInput {
 	private scene: LevelScene;
 	private cursors: PhCursorKeys;
@@ -18,7 +13,6 @@ export class GameInput {
 	public get pressingUp() {
 		return (
 			this.cursors.up.isDown ||
-			(this.cursors.space && this.cursors.space.isDown) ||
 			(this.pointer.isDown && this.pointer.y < this.scene.height * 0.3)
 		);
 	}
@@ -33,9 +27,7 @@ export class GameInput {
 	public get pressingLeft() {
 		return (
 			this.cursors.left.isDown ||
-			(this.pointer.isDown &&
-				this.pointer.x < this.scene.width * 0.3 &&
-				this.pointer.y >= this.scene.height * 0.3)
+			(this.pointer.isDown && this.pointer.x < this.scene.width * 0.3)
 		);
 	}
 

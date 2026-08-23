@@ -1,9 +1,5 @@
 import { LevelScene } from '@src/scenes';
 
-/**
- * Parallax background — UNCHANGED from the original game.
- * Same layers, same scroll factors, same assets.
- */
 export class LevelBackground {
 	private scene: LevelScene;
 	private cloudsBG: Phaser.GameObjects.TileSprite;
