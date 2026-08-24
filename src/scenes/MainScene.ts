@@ -50,7 +50,6 @@ export class MainScene extends LevelScene {
 		this.player.preload();
 		new Coin({ scene: this }).preload();
 		new Enemy({ scene: this, position: { x: 0, y: 0 } }).preload();
-		new Spikes({ scene: this }).preload();
 		this.sfx = new Sfx({ scene: this });
 		this.sfx.preload();
 	}

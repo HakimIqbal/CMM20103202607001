@@ -5,81 +5,95 @@ type PhSprite = Phaser.Physics.Arcade.Sprite & {
 };
 
 /**
- * Static spike hazard (wooden stake look).
+ * Static spike hazard — TILEMAP-NATIVE rendering.
  *
- * Rendering: dedicated pre-tinted PNG (spike_wood.png) generated from atlas
- * frame 256 — the tilemap's own extruded.png is a single-frame image, so
- * atlas frame indices silently fall back to __BASE there.
+ * The wood-brown spike graphic is baked INTO extruded.png (frame 288) and
+ * drawn by the platform_objects layer itself. The tilemap can never
+ * mis-place its own tiles relative to the terrain, so floating spikes are
+ * structurally impossible.
  *
- * Placement: JSON gids in platform_objects act as markers only. Each marker
- * is removed from the layer at runtime and snapped DOWN to the first solid
- * ground row below it, so spikes never float above dynamic terrain.
+ * This entity's only jobs:
+ *  1. find marker tiles (gid 289 = frame index 288),
+ *  2. drop markers whose column has no ground below (pit edges),
+ *  3. attach a small static body at each remaining tile's exact position.
  */
 export class Spikes {
 	private scene: LevelScene;
-	private spikes: PhSprite[] = [];
-	// Frame 256 in extruded.png = symmetric spike triangle.
-	public static readonly TILE_INDEX = 256;
+	private bodies: PhSprite[] = [];
+	// Frame 288 = wood-brown spike baked into extruded.png (gid 289 in JSON).
+	public static readonly TILE_INDEX = 288;
 
 	constructor({ scene }: { scene: LevelScene }) {
 		this.scene = scene;
 	}
 
-	public preload(): void {
-		this.scene.load.image('spike_wood', 'assets/sprites/spike_wood.png');
+	/** A spike is grounded when its column has solid ground within 2 tiles below. */
+	private static hasGroundBelowCheck(found: number, row: number): boolean {
+		return found >= 0 && found <= row + 2;
 	}
 
-	public create(
-		layer: Phaser.Tilemaps.DynamicTilemapLayer,
-		scale: number,
-		platforms: Phaser.Tilemaps.DynamicTilemapLayer
-	): void {
+	public create(layer: Phaser.Tilemaps.DynamicTilemapLayer, scale: number, platforms: Phaser.Tilemaps.DynamicTilemapLayer): void {
 		const map = layer.tilemap;
 		const spots: { col: number; row: number }[] = [];
+
 		layer.forEachTile(tile => {
 			if (tile.index - 1 !== Spikes.TILE_INDEX) return;
 			spots.push({ col: tile.x, row: tile.y });
-			layer.removeTileAt(tile.x, tile.y);
 		});
 
-		const layerYOffset = layer.y || 0;
-		const placedX = new Set<number>();
-
+		// One spike per column: when markers stack vertically (e.g. rows
+		// 24+25), keep only the LOWEST one — a spike resting on another
+		// spike reads as "floating above the grass".
+		const lowest = new Map<number, { col: number; row: number }>();
 		for (const spot of spots) {
-			// Find the first solid platform row at/below the marker.
+			const cur = lowest.get(spot.col);
+			if (!cur || spot.row > cur.row) lowest.set(spot.col, spot);
+		}
+		for (const spot of spots) {
+			if (lowest.get(spot.col) !== spot) {
+				layer.removeTileAt(spot.col, spot.row);
+			}
+		}
+		const finalSpots = Array.from(lowest.values());
+
+		for (const spot of finalSpots) {
 			let found = -1;
-			for (let r = spot.row; r < map.height; r++) {
-				if (platforms.hasTileAt(spot.col, r)) {
-					found = r;
-					break;
+			if (platforms) {
+				for (let r = spot.row; r < map.height; r++) {
+					if (platforms.hasTileAt(spot.col, r)) {
+						found = r;
+						break;
+					}
 				}
 			}
-			// No ground anywhere below (marker sits over a pit): spawning here
-			// would leave the spike floating in mid-air — drop it entirely.
-			if (found < 0) continue;
-			const row = found - 1; // sit on top of that tile
+			if (!Spikes.hasGroundBelowCheck(found, spot.row)) {
+				// Pit edge / floating marker: remove the tile so the map
+				// does not draw a spike with nothing under it.
+				layer.removeTileAt(spot.col, spot.row);
+				continue;
+			}
+			// Snap the TILE itself to the row directly above its ground.
+			const targetRow = found - 1;
+			if (targetRow !== spot.row) {
+				layer.removeTileAt(spot.col, spot.row);
+				layer.putTileAt(Spikes.TILE_INDEX + 1, spot.col, targetRow);
+			}
+
 			const worldX = spot.col * 16 * scale + 8 * scale;
-			// Dedupe: two markers in one column snap to the same spot.
-			if (placedX.has(worldX)) continue;
-			placedX.add(worldX);
 			const worldY =
-				row * 16 * scale + 8 * scale + layerYOffset;
-			const s = this.scene.physics.add.staticSprite(
+				spot.row * 16 * scale + 8 * scale + (layer.y || 0);
+			const b = this.scene.physics.add.staticImage(
 				worldX,
 				worldY,
-				'spike_wood'
-			) as PhSprite;
-			s.setScale(scale);
-			// Depth ABOVE platforms layer (50): never covered by ground.
-			s.setDepth(52);
-			// Forgiving hitbox near the base. Phaser 3.16 StaticBody.setSize
-			// takes WORLD pixels + offset; no refreshBody() after this.
-			s.body.setSize(14, 18, 17, 28);
-			this.spikes.push(s);
+				'__DEFAULT'
+			) as unknown as PhSprite;
+			b.setVisible(false); // visuals handled entirely by the tilemap
+			b.body.setSize(14, 18, 17, 28);
+			this.bodies.push(b);
 		}
 	}
 
 	public get sprites(): PhSprite[] {
-		return this.spikes;
+		return this.bodies;
 	}
 }
