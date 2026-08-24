@@ -4,8 +4,6 @@ import { LevelBackground } from './LevelBackground';
 export class LevelMap {
 	public platforms: Phaser.Tilemaps.DynamicTilemapLayer;
 	public platformObjects: Phaser.Tilemaps.DynamicTilemapLayer;
-	/** alias to platform_objects — spike tiles live here (tile index 75) */
-	public spikeLayer: Phaser.Tilemaps.DynamicTilemapLayer;
 	public map: Phaser.Tilemaps.Tilemap;
 	private startPosition: LevelObject;
 	private coinPositions: Vector2Like[] = [];
@@ -37,7 +35,6 @@ export class LevelMap {
 		this.platforms.setDepth(50);
 		this.platformObjects = this.createLayer('platform_objects');
 		this.platformObjects.setDepth(45);
-		this.spikeLayer = this.platformObjects;
 		this.background.create({
 			width: this.platforms.displayWidth,
 			height: this.platforms.displayHeight
@@ -70,15 +67,13 @@ export class LevelMap {
 	 *
 	 * Chrome/Brave fire a window resize AFTER the scene boots (bookmark bar,
 	 * zoom, devtools). createLayer() anchors layers once at boot; without a
-	 * re-anchor, layer.y keeps the stale value while the camera/viewport
-	 * moves — tiles then render offset from their physics bodies, which
-	 * reads as spikes "floating above the grass" on Chromium only.
+	 * re-anchor, layer.y keeps a stale value while the viewport moves.
 	 */
 	public refreshAnchors(): void {
 		const h = this.scene.height;
 		const layers: Phaser.Tilemaps.DynamicTilemapLayer[] = [
 			this.platforms,
-			this.spikeLayer
+			this.platformObjects
 		];
 		layers.forEach(layer => {
 			layer.y = h - layer.displayHeight;

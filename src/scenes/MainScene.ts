@@ -3,7 +3,6 @@ import { Dialog, Hud, LevelMap, LevelSprite } from '@src/components';
    Will be reintroduced as the level goal in Step 3. */
 import { Coin } from '@src/entities/Coin';
 import { Enemy } from '@src/entities/Enemy';
-import { Spikes } from '@src/entities/Spikes';
 import { Sfx } from '@src/components/Sfx';
 import { MusicPlaylist } from '@src/components/MusicPlaylist';
 import { Player } from '@src/entities';
@@ -62,73 +61,10 @@ export class MainScene extends LevelScene {
 		this.addColliders();
 		this.spawnCoins();
 		this.spawnEnemies();
-		this.spawnSpikes();
 		this.hud = new Hud({ scene: this });
 		this.hud.create();
 		this.hud.setLives(this.lives);
 		this.sfx.create();
-		this.watchViewportDrift();
-		this.debugHitboxes();
-	}
-
-	/**
-	 * Visual ground-truth overlay: draws the EXACT physics body of every
-	 * spike as a translucent red box. If a spike LOOKS floating but its box
-	 * sits on the grass, the problem is rendering/texture; if the box floats
-	 * too, it is placement. Toggle by clicking the tag in the corner.
-	 */
-	private debugHitboxes(): void {
-		const g = this.add.graphics().setDepth(200);
-		g.lineStyle(2, 0xff0000, 1);
-		g.fillStyle(0xff0000, 0.25);
-		for (const s of this.spikes.sprites) {
-			const b = s.body;
-			g.fillRect(b.position.x, b.position.y, b.width, b.height);
-			g.strokeRect(b.position.x, b.position.y, b.width, b.height);
-		}
-	}
-
-	/**
-	 * Chromium-only hazard: late window resizes (bookmark bar toggle, zoom,
-	 * devtools) fire AFTER this scene anchored its tilemap layers and spawned
-	 * entities. Every position derives from scene.height at create-time, so
-	 * a post-boot resize leaves tiles/bodies offset from each other — which
-	 * reads as spikes floating above the grass. Safari almost never fires
-	 * these, matching the "Chrome/Brave broken, Safari fine" report.
-	 * Fix: detect drift, rebuild the scene against the final viewport.
-	 */
-	private watchViewportDrift(): void {
-		const key = (): string =>
-			`${Math.round(this.scale.width)}x${Math.round(this.scale.height)}`;
-		let last = key();
-		this.time.addEvent({
-			delay: 350,
-			loop: true,
-			callback: () => {
-				const now = key();
-				if (now !== last && !this.gameOver) {
-					last = now;
-					const data =
-						((this.scene.settings && this.scene.settings.data) ||
-							{}) as { level?: number };
-					this.scene.restart(data);
-				}
-			}
-		});
-	}
-
-	/** spike tiles: overlap = -1 heart; respects invincibility window */
-	private spikes: Spikes;
-
-	private spawnSpikes() {
-		if (!this.spikes) this.spikes = new Spikes({ scene: this });
-		this.spikes.create(this.map.spikeLayer, this.map.scalingFactor, this.map.platforms);
-		for (const s of this.spikes.sprites) {
-			this.physics.add.overlap(this.player.sprite, s, () => {
-				if (this.gameOver || this.time.now < this.invincibleUntil) return;
-				this.loseHeart();
-			});
-		}
 	}
 
 	private spawnEnemies() {

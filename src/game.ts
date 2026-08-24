@@ -34,7 +34,7 @@ const game = new Phaser.Game(config);
 
 // Build marker: lets the operator verify which bundle a client actually
 // loaded (check browser console).
-console.log('[PixelQuest] build 2408-8 · spikes v8 body-tile sync');
+console.log('[PixelQuest] build 2408-9 · clean base');
 
 // Debug handle for automated testing / headless verification.
 if (typeof window !== 'undefined') {
