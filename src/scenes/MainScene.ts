@@ -1,6 +1,5 @@
 import { Dialog, Hud, LevelMap, LevelSprite } from '@src/components';
-/* NOTE: loveChest system temporarily disabled for Step 2 testing.
-   Will be reintroduced as the level goal in Step 3. */
+import { LoveChest } from '@src/components';
 import { Coin } from '@src/entities/Coin';
 import { Enemy } from '@src/entities/Enemy';
 import { Sfx } from '@src/components/Sfx';
@@ -24,6 +23,7 @@ export class MainScene extends LevelScene {
 	private invincibleUntil: number = 0;
 	private heartIcons: Phaser.GameObjects.Image[] = [];
 	private sfx!: Sfx;
+	private chest!: LoveChest;
 	private level: number = 1;
 	private finishing: boolean = false;
 	private musicPlaylist: MusicPlaylist;
@@ -49,6 +49,8 @@ export class MainScene extends LevelScene {
 		this.player.preload();
 		new Coin({ scene: this }).preload();
 		new Enemy({ scene: this, position: { x: 0, y: 0 } }).preload();
+		this.chest = new LoveChest({ scene: this });
+		this.chest.preload();
 		this.sfx = new Sfx({ scene: this });
 		this.sfx.preload();
 	}
@@ -65,6 +67,53 @@ export class MainScene extends LevelScene {
 		this.hud.create();
 		this.hud.setLives(this.lives);
 		this.sfx.create();
+		this.spawnGoalChest();
+	}
+
+	/**
+	 * Level goal (Step 3 of the plan): the love chest sits on the last
+	 * solid column. Touching it wins the level -> WinScene with final score.
+	 */
+	private spawnGoalChest() {
+		const col = this.map.getLastSolidColumn();
+		const row = this.map.getSurfaceRow(col);
+		const scale = this.map.scalingFactor - 1;
+		const x = col * 16 * this.map.scalingFactor + 8 * this.map.scalingFactor;
+		const y =
+			this.map.platforms.y +
+			row * 16 * this.map.scalingFactor -
+			32 * scale; // half chest height above ground line
+		const sprite = this.add.sprite(x, y, 'loveChest') as unknown as LevelSprite;
+		sprite.setScale(scale);
+		sprite.setDepth(46);
+		this.physics.add.existing(sprite, true); // static body for overlap only
+		this.chest.create({ sprite });
+		this.physics.add.overlap(this.player.sprite, sprite, () => {
+			void this.winLevel();
+		});
+	}
+
+	private async winLevel() {
+		if (this.finishing || this.gameOver) return;
+		this.finishing = true;
+		// stop all motion BEFORE freezing — momentum would otherwise carry
+		// the frozen player off the last column into the void (map edge).
+		this.player.sprite.setVelocity(0, 0);
+		this.player.sprite.body.stop();
+		this.player.toggleFreeze(true);
+		// the win is EARNED at touch: no enemy may hurt the player during
+		// the celebration window (a patrolling slime near the chest would
+		// otherwise drain hearts mid-confetti and steal the victory).
+		this.invincibleUntil = Number.MAX_SAFE_INTEGER;
+		try {
+			await this.chest.open(5);
+		} catch (e) {
+			// celebration is cosmetic — the win must never get stuck
+			console.warn('chest.open failed, continuing to WinScene', e);
+		}
+		this.time.delayedCall(400, () => {
+			this.scene.start('WinScene', { score: this.score });
+		}, [], this);
 	}
 
 	private spawnEnemies() {
@@ -225,6 +274,7 @@ export class MainScene extends LevelScene {
 	public update(time: number, delta: number) {
 		this.map.update();
 		this.player.update();
+		if (this.chest) this.chest.update();
 		this.playerPrevBottom = this.player.sprite.body.bottom;
 		// facing = last direction the character looked (flipX persists while standing)
 		this.enemies.forEach(e => {

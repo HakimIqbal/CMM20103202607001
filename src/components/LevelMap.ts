@@ -143,6 +143,20 @@ export class LevelMap {
 		return this.getObjects(name)[0];
 	}
 
+	/** rightmost column with any solid tile — where the goal chest sits */
+	public getLastSolidColumn(): number {
+		for (let c = this.map.width - 1; c >= 0; c--) {
+			if (this.findSurfaceRow(c) != null) return c;
+		}
+		return this.map.width - 1;
+	}
+
+	/** first solid row from the top in a column (surface line) */
+	public getSurfaceRow(col: number): number {
+		const found = this.findSurfaceRow(col);
+		return found != null ? found : 25;
+	}
+
 	public getObjects(name: string): LevelObject[] {
 		const objects = this.objectsLayer.objects.filter(
 			o => o.name === name

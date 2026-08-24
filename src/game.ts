@@ -34,7 +34,7 @@ const game = new Phaser.Game(config);
 
 // Build marker: lets the operator verify which bundle a client actually
 // loaded (check browser console).
-console.log('[PixelQuest] build 2408-15 · chase reaction delay');
+console.log('[PixelQuest] build 2408-20 · chest flying text ticked');
 
 // Debug handle for automated testing / headless verification.
 if (typeof window !== 'undefined') {
