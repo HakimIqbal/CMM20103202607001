@@ -115,24 +115,6 @@ export class MainScene extends LevelScene {
 			if (!landed) return;
 			void this.winLevel();
 		});
-		// interaction hint floats above the chest
-		const hint = this.add
-			.text(x, y - 70 * scale, 'JUMP ON TOP!', {
-				fontFamily: 'Arcade',
-				fontSize: `${Math.round(11 * scale)}px`,
-				color: '#ffffff',
-				stroke: '#2b3f8e',
-				strokeThickness: 4
-			})
-			.setOrigin(0.5)
-			.setDepth(60);
-		this.tweens.add({
-			targets: hint,
-			alpha: 0.25,
-			duration: 700,
-			yoyo: true,
-			repeat: -1
-		});
 	}
 
 	private async winLevel() {
