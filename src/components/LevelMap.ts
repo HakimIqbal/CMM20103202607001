@@ -4,8 +4,6 @@ import { LevelBackground } from './LevelBackground';
 export class LevelMap {
 	public platforms: Phaser.Tilemaps.DynamicTilemapLayer;
 	public platformObjects: Phaser.Tilemaps.DynamicTilemapLayer;
-	/** alias to platform_objects — spike tiles live here (tile index 75) */
-	public spikeLayer: Phaser.Tilemaps.DynamicTilemapLayer;
 	public map: Phaser.Tilemaps.Tilemap;
 	private startPosition: LevelObject;
 	private coinPositions: Vector2Like[] = [];
@@ -35,7 +33,6 @@ export class LevelMap {
 		this.platforms.setDepth(50);
 		this.platformObjects = this.createLayer('platform_objects');
 		this.platformObjects.setDepth(45);
-		this.spikeLayer = this.platformObjects;
 		this.background.create({
 			width: this.platforms.displayWidth,
 			height: this.platforms.displayHeight
