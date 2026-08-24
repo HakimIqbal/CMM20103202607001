@@ -21,7 +21,7 @@ const config: GameConfig = {
 		height: 864,
 		autoCenter: Phaser.Scale.CENTER_BOTH,
 		autoRound: true,
-		mode: Phaser.Scale.RESIZE
+		mode: Phaser.Scale.FIT
 	},
 	scene: [TitleScene, MainScene, GameOverScene, WinScene],
 	render: {
@@ -52,13 +52,17 @@ function refreshGameSize() {
 	}
 	parent.style.width = window.innerWidth + 'px';
 	parent.style.height = vh + 'px';
-	game.scale.refresh();
+	// Only refresh scale after game is fully booted
+	try {
+		if (game.scale) {
+			game.scale.refresh();
+		}
+	} catch (e) {
+		// ScaleManager not ready yet — skip
+	}
 }
 
-// Set immediately (before next paint)
-refreshGameSize();
-
-// Listen to all possible resize events
+// Listen to all possible resize events (only after game boots)
 window.addEventListener('resize', refreshGameSize);
 window.addEventListener('orientationchange', () => setTimeout(refreshGameSize, 200));
 if (_w.visualViewport) {
