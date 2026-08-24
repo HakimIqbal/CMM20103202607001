@@ -83,13 +83,18 @@ export class Enemy {
 			this.sprite.body.blocked.left ? -1 :
 			this.sprite.body.blocked.right ? 1 : 0;
 
-		// ---- priority 1: SAFETY --------------------------------------
 		if (wallHit !== 0 && now - this.lastTurnAt > 250) {
 			this.lastTurnAt = now;
 			this.sprite.setVelocityX(-wallHit * this.speed);
-		} else if (
+		}
+
+		// ---- MANDATORY LEDGE TURN ------------------------------------
+		// Checked EVERY frame with NO cooldown: the moment there is no
+		// ground ahead, the slime must reverse. It may never walk off,
+		// pause at, or fall from a ledge while alive.
+		if (
 			vx !== 0 &&
-			now - this.lastTurnAt > 250 &&
+			this.sprite.body.onFloor() &&
 			this.hasGroundAt
 		) {
 			const dir = vx > 0 ? 1 : -1;
@@ -101,7 +106,7 @@ export class Enemy {
 			}
 		}
 
-		// ---- priority 2: MIRROR PLAYER -------------------------------
+		// ---- MIRROR PLAYER (never into a pit) ------------------------
 		if (
 			this.mirrorPlayer &&
 			this.desiredDir !== 0 &&
@@ -109,8 +114,24 @@ export class Enemy {
 			now - this.lastTurnAt > 400 &&
 			vx * this.desiredDir < 0                // moving opposite to player
 		) {
-			this.lastTurnAt = now;
-			this.sprite.setVelocityX(this.desiredDir * this.speed);
+			// Only follow the player's direction if solid ground exists
+			// ahead in that direction — mirroring must respect the ledge law.
+			let safeToMirror = true;
+			if (this.sprite.body.onFloor() && this.hasGroundAt) {
+				const probeX =
+					this.sprite.body.center.x +
+					(this.sprite.body.width / 3) * this.desiredDir;
+				const probeY = this.sprite.body.bottom + 6;
+				safeToMirror = this.hasGroundAt(probeX, probeY);
+			}
+			if (safeToMirror) {
+				this.lastTurnAt = now;
+				this.sprite.setVelocityX(this.desiredDir * this.speed);
+			} else {
+				// refuse the unsafe direction: reverse instead of walking off
+				this.lastTurnAt = now;
+				this.sprite.setVelocityX(-this.desiredDir * this.speed);
+			}
 		}
 
 		// ---- priority 3: NEVER FREEZE (hop when stuck) ---------------
