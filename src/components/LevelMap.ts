@@ -171,6 +171,33 @@ export class LevelMap {
 		return this.getLastSolidColumn();
 	}
 
+	/**
+	 * Goal chest column: the first clean (deco-free, solid) column that
+	 * sits LEFT of any decoration cluster near the map's right edge — the
+	 * player asked for "chest to the LEFT of the rocks", with breathing
+	 * room on both sides.
+	 */
+	public getGoalColumn(): number {
+		const lastSolid = this.getLastSolidColumn();
+		const cleanCols: number[] = [];
+		for (let c = lastSolid; c >= 0 && c >= lastSolid - 8; c--) {
+			if (this.findSurfaceRow(c) == null) continue;
+			let hasDeco = false;
+			for (let r = 0; r < this.map.height; r++) {
+				if (this.platformObjects.hasTileAt(c, r)) {
+					hasDeco = true;
+					break;
+				}
+			}
+			if (!hasDeco) cleanCols.push(c);
+		}
+		// cleanCols is ordered right→left; pick the MIDDLE clean column so
+		// there is open space on both sides of the chest.
+		return cleanCols.length
+			? cleanCols[Math.floor(cleanCols.length / 2)]
+			: this.getLastCleanColumn();
+	}
+
 	/** first solid row from the top in a column (surface line) */
 	public getSurfaceRow(col: number): number {
 		const found = this.findSurfaceRow(col);

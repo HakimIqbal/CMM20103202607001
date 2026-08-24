@@ -75,10 +75,11 @@ export class MainScene extends LevelScene {
 	 * solid column. Touching it wins the level -> WinScene with final score.
 	 */
 	private spawnGoalChest() {
-		// Walk left from the map edge to the first column that is BOTH
-		// solid ground AND free of decoration tiles — a chest perched on
-		// the rock-stack decor read as "floating on a boulder".
-		const col = this.map.getLastCleanColumn();
+		// Player request: chest goes LEFT of the rock decorations, on clean
+		// grass. Scan left from the edge and take the first clean column
+		// that also has at least one clean column before the rocks begin
+		// (so the chest never hugs either the rocks or the wall).
+		const col = this.map.getGoalColumn();
 		const row = this.map.getSurfaceRow(col);
 		const scale = this.map.scalingFactor - 1;
 		const x = col * 16 * this.map.scalingFactor + 8 * this.map.scalingFactor;
@@ -95,9 +96,33 @@ export class MainScene extends LevelScene {
 		sprite.setDepth(46);
 		this.physics.add.existing(sprite, true); // static body for overlap only
 		this.chest.create({ sprite });
-		this.physics.add.overlap(this.player.sprite, sprite, () => {
+		// generous invisible sensor: opening must feel effortless, not
+		// pixel-hunting the sprite's hitbox.
+		const zone = this.add.zone(x, y, 160 * scale, 140 * scale);
+		this.physics.add.existing(zone, true);
+		this.physics.add.overlap(this.player.sprite, zone, () => {
 			void this.winLevel();
 		});
+		// interaction hint floats above the chest
+		const hint = this.add
+			.text(x, y - 70 * scale, 'TAP / SPACE TO OPEN', {
+				fontFamily: 'Arcade',
+				fontSize: `${Math.round(11 * scale)}px`,
+				color: '#ffffff',
+				stroke: '#2b3f8e',
+				strokeThickness: 4
+			})
+			.setOrigin(0.5)
+			.setDepth(60);
+		this.tweens.add({
+			targets: hint,
+			alpha: 0.25,
+			duration: 700,
+			yoyo: true,
+			repeat: -1
+		});
+		// auto-open when the player simply walks into the chest area too —
+		// but the hint tells them any touch opens it.
 	}
 
 	private async winLevel() {
