@@ -34,7 +34,7 @@ const game = new Phaser.Game(config);
 
 // Build marker: lets the operator verify which bundle a client actually
 // loaded (check browser console).
-console.log('[PixelQuest] build 2408-4 · spikes v4 (pit-drop + dedupe + wood)');
+console.log('[PixelQuest] build 2408-5 · spikes v5 tilemap-native');
 
 // Debug handle for automated testing / headless verification.
 if (typeof window !== 'undefined') {

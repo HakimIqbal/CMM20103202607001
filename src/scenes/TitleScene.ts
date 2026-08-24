@@ -20,6 +20,17 @@ export class TitleScene extends LevelScene {
 		const h = this.scale.height;
 		const cx = w / 2;
 
+		// Build tag (tiny, corner): lets the operator verify the loaded
+		// bundle version on any device without devtools.
+		this.add
+			.text(w - 8, h - 8, 'v2408-5', {
+				fontFamily: 'monospace',
+				fontSize: '11px',
+				color: '#ffffff'
+			})
+			.setOrigin(1, 1)
+			.setDepth(100);
+
 		this.add
 			.text(cx, h * 0.22, 'PIXEL', {
 				fontFamily: 'Arcade',
