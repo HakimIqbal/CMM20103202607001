@@ -170,14 +170,36 @@ export class Enemy {
 		}
 
 		// ---- periodic hop for liveliness ------------------------------
+		// SAFETY: a hop lasts ~0.55s; at chase speed that is ~58px of
+		// horizontal travel while the ledge check (onFloor-only) is blind.
+		// Probe the FULL airtime landing zone before hopping, else turn.
 		if (this.nextHopAt === 0) this.nextHopAt = now + Phaser.Math.Between(1800, 3200);
 		if (
 			now > this.nextHopAt &&
 			this.sprite.body.onFloor() &&
-			!this.dead
+			this.hasGroundAt &&
+			vx !== 0
 		) {
-			this.nextHopAt = now + Phaser.Math.Between(1800, 3200);
-			this.sprite.setVelocityY(-300);
+			const dir = vx > 0 ? 1 : -1;
+			const airtime = 1.1; // seconds up+down at jumpVelocity -300
+			const travel = Math.abs(vx) * airtime * 1.15;
+			const probeX = this.sprite.body.center.x + travel * dir;
+			const probeY = this.sprite.body.bottom + 6;
+			let safe = true;
+			for (let d = 16; d <= travel && safe; d += 16) {
+				if (!this.hasGroundAt(this.sprite.body.center.x + d * dir, probeY)) {
+					safe = false;
+				}
+			}
+			if (safe) {
+				this.nextHopAt = now + Phaser.Math.Between(1800, 3200);
+				this.sprite.setVelocityY(-300);
+			} else {
+				// unsafe: skip hop and turn away from the ledge now
+				this.nextHopAt = now + Phaser.Math.Between(1800, 3200);
+				this.lastTurnAt = now;
+				this.sprite.setVelocityX(-dir * this.speed);
+			}
 		}
 
 		this.sprite.setFlipX(this.sprite.body.velocity.x < 0);

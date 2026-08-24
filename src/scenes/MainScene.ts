@@ -75,8 +75,13 @@ export class MainScene extends LevelScene {
 			enemy.create(pos, this.map.scalingFactor - 1);
 			enemy.mirrorPlayer = true; // aggro switch (kept name)
 			enemy.hasGroundAt = (x: number, y: number) => {
-				const col = Math.floor(x / this.map.scalingFactor / 16);
-				const row = Math.floor(y / this.map.scalingFactor / 16);
+				// World -> tile conversion must use the LAYER's scale
+				// (map.scalingFactor = 3, not the enemy sprite scale = 2)
+				// and undo the layer's Y shift (layer.y = -(mapH - sceneH)).
+				const layerScale = this.map.scalingFactor;
+				const layerY = this.map.platforms.y;
+				const col = Math.floor(x / layerScale / 16);
+				const row = Math.floor((y - layerY) / layerScale / 16);
 				return this.map.platforms.hasTileAt(col, row);
 			};
 			this.enemies.push(enemy);

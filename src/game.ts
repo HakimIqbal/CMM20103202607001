@@ -34,7 +34,7 @@ const game = new Phaser.Game(config);
 
 // Build marker: lets the operator verify which bundle a client actually
 // loaded (check browser console).
-console.log('[PixelQuest] build 2408-9 · clean base');
+console.log('[PixelQuest] build 2408-12 · hop landing-zone safety');
 
 // Debug handle for automated testing / headless verification.
 if (typeof window !== 'undefined') {
