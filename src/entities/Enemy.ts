@@ -82,6 +82,12 @@ export class Enemy {
 	private static readonly AGGRO_RANGE_X = 520;
 	private static readonly AGGRO_RANGE_Y = 80;
 	private static readonly CHASE_SPEED = 105;
+	/** how often the slime re-evaluates chase direction (reaction delay) */
+	private static readonly CHASE_THINK_MS = 300;
+
+	private chasing: boolean = false;
+	private chaseDir: 0 | 1 | -1 = 0;
+	private lastChaseThinkAt: number = 0;
 
 	public update(): void {
 		if (this.dead || !this.sprite.body) return;
@@ -120,27 +126,39 @@ export class Enemy {
 		// within range, walk TOWARD THE PLAYER'S POSITION (Goomba-style
 		// approach), not just mirror their facing. Ledge law still wins:
 		// never step toward a pit.
+		//
+		// REACTION DELAY (spec STEP 3): direction intent is re-evaluated on
+		// a 300ms tick, so a quick feint by the player buys ~0.3s of slime
+		// confusion instead of instant tracking. Ledge safety still runs
+		// EVERY frame and overrides everything — safety is never delayed.
 		if (
 			this.mirrorPlayer &&
 			this.hasGroundAt &&
 			this.sprite.body.onFloor() &&
-			Math.abs(this.playerPosY - this.sprite.y) < Enemy.AGGRO_RANGE_Y &&
-			Math.abs(this.playerPosX - this.sprite.x) < Enemy.AGGRO_RANGE_X
+			now - this.lastChaseThinkAt >= Enemy.CHASE_THINK_MS
 		) {
-			const wantDir = this.playerPosX > this.sprite.x ? 1 : -1;
+			this.lastChaseThinkAt = now;
+			const inBandY = Math.abs(this.playerPosY - this.sprite.y) < Enemy.AGGRO_RANGE_Y;
+			const inRangeX = Math.abs(this.playerPosX - this.sprite.x) < Enemy.AGGRO_RANGE_X;
+			if (inBandY && inRangeX) {
+				this.chaseDir = this.playerPosX > this.sprite.x ? 1 : -1;
+				this.chasing = true;
+			} else {
+				this.chasing = false; // out of range: forget the player until next think
+			}
+		}
+		if (this.chasing && this.chaseDir !== 0 && this.hasGroundAt) {
 			const chaseSpeed = Math.max(Enemy.CHASE_SPEED, this.speed);
-			if (wallHit !== wantDir) {
+			if (wallHit !== this.chaseDir) {
 				const probeX =
 					this.sprite.body.center.x +
-					(this.sprite.body.width / 3) * wantDir;
+					(this.sprite.body.width / 3) * this.chaseDir;
 				const probeY = this.sprite.body.bottom + 6;
 				if (this.hasGroundAt(probeX, probeY)) {
-					this.lastTurnAt = now;
-					this.sprite.setVelocityX(wantDir * chaseSpeed);
+					this.sprite.setVelocityX(this.chaseDir * chaseSpeed);
 				} else {
 					// ledge blocks the approach: patrol away from it
-					this.lastTurnAt = now;
-					this.sprite.setVelocityX(-wantDir * this.speed);
+					this.sprite.setVelocityX(-this.chaseDir * this.speed);
 				}
 			}
 		}
