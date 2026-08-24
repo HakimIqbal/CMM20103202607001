@@ -23,7 +23,7 @@ const config: GameConfig = {
 		autoRound: true,
 		mode: Phaser.Scale.FIT
 	},
-	scene: [TitleScene, MainScene, GameOverScene, WinScene],
+	scene: [],
 	render: {
 		antialias: false,
 		pixelArt: true,
@@ -33,6 +33,12 @@ const config: GameConfig = {
 };
 
 const game = new Phaser.Game(config);
+
+// Register scenes manually (config.scene is empty so nothing auto-starts)
+game.scene.add('TitleScene', TitleScene, false);
+game.scene.add('MainScene', MainScene, false);
+game.scene.add('GameOverScene', GameOverScene, false);
+game.scene.add('WinScene', WinScene, false);
 
 /**
  * Font loading race fix: custom 'Arcade' font via @font-face may not be
