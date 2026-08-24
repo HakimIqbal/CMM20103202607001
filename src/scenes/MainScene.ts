@@ -3,6 +3,7 @@ import { Dialog, Hud, LevelMap, LevelSprite } from '@src/components';
    Will be reintroduced as the level goal in Step 3. */
 import { Coin } from '@src/entities/Coin';
 import { Enemy } from '@src/entities/Enemy';
+import { Spikes } from '@src/entities/Spikes';
 import { Sfx } from '@src/components/Sfx';
 import { MusicPlaylist } from '@src/components/MusicPlaylist';
 import { Player } from '@src/entities';
@@ -61,10 +62,24 @@ export class MainScene extends LevelScene {
 		this.addColliders();
 		this.spawnCoins();
 		this.spawnEnemies();
+		this.spawnSpikes();
 		this.hud = new Hud({ scene: this });
 		this.hud.create();
 		this.hud.setLives(this.lives);
 		this.sfx.create();
+	}
+
+	/** spike tiles: overlap = -1 heart + upward knockback (invincibility applies) */
+	private spikes: Spikes;
+
+	private spawnSpikes() {
+		this.spikes = new Spikes({ scene: this });
+		this.spikes.create(this.map.spikeLayer, this.map.scalingFactor);
+		for (const s of this.spikes.sprites) {
+			this.physics.add.overlap(this.player.sprite, s, () =>
+				this.loseHeart()
+			);
+		}
 	}
 
 	private spawnEnemies() {
