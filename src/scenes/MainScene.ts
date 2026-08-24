@@ -39,7 +39,7 @@ export class MainScene extends LevelScene {
 
 		this.dialog = new Dialog();
 		this.player = new Player({ scene: this });
-		this.map = new LevelMap({ scene: this, level: this.level });
+		this.map = new LevelMap({ scene: this });
 		this.musicPlaylist = new MusicPlaylist();
 		this.musicPlaylist.play();
 	}
@@ -85,10 +85,8 @@ export class MainScene extends LevelScene {
 	private spawnEnemies() {
 		// derive enemy spots from tilemap surface, spaced apart from coin columns
 		const positions = this.map.getEnemyPositions();
-		// difficulty scaling: enemies get faster each level
-		const speedMult = 1 + (this.level - 1) * 0.25; // L1:1.0 L2:1.25 L3:1.5
 		positions.forEach(pos => {
-			const enemy = new Enemy({ scene: this, position: pos, speedMultiplier: speedMult });
+			const enemy = new Enemy({ scene: this, position: pos });
 			enemy.create(pos, this.map.scalingFactor - 1);
 			enemy.mirrorPlayer = true;
 			enemy.hasGroundAt = (x: number, y: number) => {
