@@ -108,11 +108,17 @@ export class MainScene extends LevelScene {
 		const scale = this.map.scalingFactor - 1;
 		const cx = slime.sprite.x;
 		const cy = slime.sprite.y;
-		const offsets = [-34, 0, 34]; // fan: left, center, right
-		for (const dx of offsets) {
-			const mini = new Enemy({ scene: this, position: { x: cx + dx, y: cy } });
-			mini.create({ x: cx + dx, y: cy }, scale * 0.6);
-			mini.makeMini(scale * 0.6);
+		// Wider fan + slight vertical pop so the burst reads clearly and the
+		// minis scatter around the player instead of clustering on one spot.
+		const offsets = [
+			{ dx: -64, dy: -30 },
+			{ dx: 0, dy: -46 },
+			{ dx: 64, dy: -30 }
+		];
+		for (const off of offsets) {
+			const mini = new Enemy({ scene: this, position: { x: cx + off.dx, y: cy + off.dy } });
+			mini.create({ x: cx + off.dx, y: cy + off.dy }, scale * 0.6);
+			mini.makeMini(scale * 0.75);
 			mini.mirrorPlayer = true;
 			mini.hasGroundAt = this.enemyHasGroundAt;
 			mini.onStomped = undefined; // minis do NOT split further
