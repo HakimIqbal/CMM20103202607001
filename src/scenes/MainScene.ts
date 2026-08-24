@@ -4,7 +4,6 @@ import { Dialog, Hud, LevelMap, LevelSprite } from '@src/components';
 import { Coin } from '@src/entities/Coin';
 import { Enemy } from '@src/entities/Enemy';
 import { Spikes } from '@src/entities/Spikes';
-import { BossEnemy } from '@src/entities/BossEnemy';
 import { Sfx } from '@src/components/Sfx';
 import { MusicPlaylist } from '@src/components/MusicPlaylist';
 import { Player } from '@src/entities';
@@ -64,7 +63,6 @@ export class MainScene extends LevelScene {
 		this.spawnCoins();
 		this.spawnEnemies();
 		this.spawnSpikes();
-		this.spawnBoss();
 		this.hud = new Hud({ scene: this });
 		this.hud.create();
 		this.hud.setLives(this.lives);
@@ -82,76 +80,6 @@ export class MainScene extends LevelScene {
 				this.loseHeart()
 			);
 		}
-	}
-
-	/** mini-boss near map end — stomp N times to finish the level */
-	private boss!: BossEnemy;
-
-	private spawnBoss() {
-		this.boss = new BossEnemy({ scene: this, maxHp: 2 + this.level }); // L1:3 L2:4 L3:5
-		// texture 'slime' already loaded by Enemy.preload() — no extra preload needed
-		const speedMult = 1 + (this.level - 1) * 0.25;
-		// boss arena: last solid ground column of the map
-		const pos = { x: this.scale.width * 0.92, y: 0 };
-		this.boss.create(pos, this.map.scalingFactor - 1, speedMult);
-		this.physics.add.collider(this.boss.sprite, this.map.platforms);
-		this.physics.add.collider(this.boss.sprite, this.map.platformObjects);
-		this.physics.add.overlap(
-			this.player.sprite,
-			this.boss.sprite,
-			() => this.handleBossTouch()
-		);
-		this.boss.onComplete = () => void this.winLevel();
-	}
-
-	private handleBossTouch() {
-		if (this.boss.isDead || this.time.now < this.invincibleUntil || this.finishing) return;
-		const playerBottom = this.player.sprite.body.bottom;
-		const playerPrevBottom = this.playerPrevBottom;
-		const bossTop = this.boss.sprite.body.top;
-		if (playerBottom <= bossTop + 12 && playerPrevBottom <= bossTop + 6) {
-			// stomp!
-			const killed = this.boss.stomp();
-			this.player.sprite.setVelocityY(-450);
-			this.score += 100;
-			this.hud.setScore(this.score);
-			this.sfx.play('sfx_stomp');
-			if (killed) {
-				this.score += 250; // kill bonus
-				this.hud.setScore(this.score);
-			}
-		} else {
-			this.loseHeart();
-		}
-	}
-
-	private winLevel() {
-		if (this.finishing) return;
-		this.finishing = true;
-		this.sfx.play('sfx_win');
-		this.player.toggleFreeze(true);
-		const w = this.scale.width;
-		const banner = this.add
-			.text(this.cameras.main.midPoint.x, this.cameras.main.midPoint.y, 'LEVEL COMPLETE!', {
-				fontFamily: 'Arcade',
-				fontSize: `${Math.round(w / 24)}px`,
-				color: '#ffe98a',
-				stroke: '#2b3f8e',
-				strokeThickness: 6
-			})
-			.setOrigin(0.5)
-			.setDepth(80)
-			.setScrollFactor(0);
-		this.time.delayedCall(2200, () => {
-			banner.destroy();
-			this.finishing = false;
-			if (this.level >= 3) {
-				this.scene.start('WinScene', { score: this.score });
-				return;
-			}
-			this.level += 1;
-			this.scene.restart({ level: this.level, score: this.score });
-		}, [], this);
 	}
 
 	private spawnEnemies() {
@@ -275,7 +203,6 @@ export class MainScene extends LevelScene {
 			e.setPlayerFacing(facing);
 			e.update();
 		});
-		if (this.boss && !this.boss.isDead) this.boss.update();
 	}
 
 	private addColliders() {
