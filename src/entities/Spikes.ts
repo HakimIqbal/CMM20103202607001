@@ -5,19 +5,20 @@ type PhSprite = Phaser.Physics.Arcade.Sprite & {
 };
 
 /**
- * Static spike hazard.
+ * Static spike hazard (wooden stake look).
  *
- * Rendering: uses a dedicated pre-tinted red PNG (spike_red.png) instead of
- * the atlas. Rationale: extruded.png is loaded as a single-frame image for
- * the tilemap, so atlas frame indices silently fall back to __BASE there;
- * and canvas-baked tinted textures are unreliable on the old WebGL pipeline.
- * A plain PNG asset renders correctly under both Canvas and WebGL.
+ * Rendering: dedicated pre-tinted PNG (spike_wood.png) generated from atlas
+ * frame 256 — the tilemap's own extruded.png is a single-frame image, so
+ * atlas frame indices silently fall back to __BASE there.
+ *
+ * Placement: JSON gids in platform_objects act as markers only. Each marker
+ * is removed from the layer at runtime and snapped DOWN to the first solid
+ * ground row below it, so spikes never float above dynamic terrain.
  */
 export class Spikes {
 	private scene: LevelScene;
 	private spikes: PhSprite[] = [];
-	// Frame 256 in extruded.png = symmetric ice-spike triangle; the red PNG
-	// is generated from that frame (gid 257 in base.json platform_objects).
+	// Frame 256 in extruded.png = symmetric spike triangle.
 	public static readonly TILE_INDEX = 256;
 
 	constructor({ scene }: { scene: LevelScene }) {
@@ -25,40 +26,48 @@ export class Spikes {
 	}
 
 	public preload(): void {
-		this.scene.load.image('spike_red', 'assets/sprites/spike_red.png');
+		this.scene.load.image('spike_wood', 'assets/sprites/spike_wood.png');
 	}
-	public create(layer: Phaser.Tilemaps.DynamicTilemapLayer, scale: number): void {
-		// Collect marker tiles first, then REMOVE them from the tilemap so
-		// the map does not draw its own (white, untinted) triangles on top of
-		// our sprites. The JSON gids act purely as placement markers.
-		const spots: { px: number; py: number }[] = [];
+
+	public create(
+		layer: Phaser.Tilemaps.DynamicTilemapLayer,
+		scale: number,
+		platforms: Phaser.Tilemaps.DynamicTilemapLayer
+	): void {
+		const map = layer.tilemap;
+		const spots: { col: number; row: number }[] = [];
 		layer.forEachTile(tile => {
 			if (tile.index - 1 !== Spikes.TILE_INDEX) return;
-			spots.push({ px: tile.pixelX, py: tile.pixelY });
+			spots.push({ col: tile.x, row: tile.y });
+			layer.removeTileAt(tile.x, tile.y);
 		});
-		for (const s of spots) {
-			layer.removeTileAt(s.px / 16, s.py / 16);
-		}
-		// Tile coords are unscaled 16px units. The tilemap layers are
-		// shifted UP by (mapHeight - sceneHeight) = -720px so their bottom
-		// aligns with the viewport; sprites must apply the same offset or
-		// they render one screen lower than the visual terrain.
+
 		const layerYOffset = layer.y || 0;
+
 		for (const spot of spots) {
-			const worldX = spot.px * scale + 8 * scale;
-			const worldY = spot.py * scale + 8 * scale + layerYOffset;
+			let row = spot.row;
+			// Snap down to the first solid platform row below the marker.
+			let found = -1;
+			for (let r = spot.row; r < map.height; r++) {
+				if (platforms.hasTileAt(spot.col, r)) {
+					found = r;
+					break;
+				}
+			}
+			if (found >= 0) row = found - 1; // sit on top of that tile
+			const worldX = spot.col * 16 * scale + 8 * scale;
+			const worldY =
+				row * 16 * scale + 8 * scale + layerYOffset;
 			const s = this.scene.physics.add.staticSprite(
 				worldX,
 				worldY,
-				'spike_red'
+				'spike_wood'
 			) as PhSprite;
 			s.setScale(scale);
-			// Depth ABOVE platforms layer (50): spikes must never be covered by ground.
+			// Depth ABOVE platforms layer (50): never covered by ground.
 			s.setDepth(52);
-			// Forgiving hitbox: small box near the base of the spike, far
-			// smaller than the 48px visual. Phaser 3.16 StaticBody.setSize
-			// takes WORLD pixels + offset. Do NOT call refreshBody() after
-			// this — it re-derives the body from display size.
+			// Forgiving hitbox near the base. Phaser 3.16 StaticBody.setSize
+			// takes WORLD pixels + offset; no refreshBody() after this.
 			s.body.setSize(14, 18, 17, 28);
 			this.spikes.push(s);
 		}

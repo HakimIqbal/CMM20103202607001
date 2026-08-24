@@ -75,7 +75,7 @@ export class MainScene extends LevelScene {
 
 	private spawnSpikes() {
 		if (!this.spikes) this.spikes = new Spikes({ scene: this });
-		this.spikes.create(this.map.spikeLayer, this.map.scalingFactor);
+		this.spikes.create(this.map.spikeLayer, this.map.scalingFactor, this.map.platforms);
 		for (const s of this.spikes.sprites) {
 			this.physics.add.overlap(this.player.sprite, s, () => {
 				if (this.gameOver || this.time.now < this.invincibleUntil) return;
