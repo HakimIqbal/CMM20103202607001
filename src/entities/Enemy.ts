@@ -222,10 +222,12 @@ export class Enemy {
 
 		this.sprite.setFlipX(this.sprite.body.velocity.x < 0);
 
-		// safety net: if it somehow fell out of the world, return to spawn
+		// safety net: a slime that somehow fell out of the world is GONE.
+		// Respawning it would teleport it back into view mid-air (players
+		// reported "fountain" minis raining from above the pit) — and for
+		// minis it would also resurrect points the player already earned.
 		if (this.sprite.y > this.scene.height + 100) {
-			this.sprite.setPosition(this.spawnPoint.x, this.spawnPoint.y);
-			this.sprite.setVelocityX(this.speed);
+			this.kill();
 		}
 	}
 
