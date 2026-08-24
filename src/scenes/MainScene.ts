@@ -75,9 +75,10 @@ export class MainScene extends LevelScene {
 	 * solid column. Touching it wins the level -> WinScene with final score.
 	 */
 	private spawnGoalChest() {
-		// A few columns in from the right edge: the chest should sit on
-		// open ground with breathing room, not squashed against the map wall.
-		const col = Math.max(0, this.map.getLastSolidColumn() - 3);
+		// Walk left from the map edge to the first column that is BOTH
+		// solid ground AND free of decoration tiles — a chest perched on
+		// the rock-stack decor read as "floating on a boulder".
+		const col = this.map.getLastCleanColumn();
 		const row = this.map.getSurfaceRow(col);
 		const scale = this.map.scalingFactor - 1;
 		const x = col * 16 * this.map.scalingFactor + 8 * this.map.scalingFactor;

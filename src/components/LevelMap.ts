@@ -151,6 +151,26 @@ export class LevelMap {
 		return this.map.width - 1;
 	}
 
+	/**
+	 * Rightmost column that is solid ground with NO decoration tile on it
+	 * (platform_objects layer). Chests belong on clean grass, not stacked
+	 * on the map's rock decorations.
+	 */
+	public getLastCleanColumn(): number {
+		for (let c = this.map.width - 1; c >= 0; c--) {
+			if (this.findSurfaceRow(c) == null) continue;
+			let hasDeco = false;
+			for (let r = 0; r < this.map.height; r++) {
+				if (this.platformObjects.hasTileAt(c, r)) {
+					hasDeco = true;
+					break;
+				}
+			}
+			if (!hasDeco) return c;
+		}
+		return this.getLastSolidColumn();
+	}
+
 	/** first solid row from the top in a column (surface line) */
 	public getSurfaceRow(col: number): number {
 		const found = this.findSurfaceRow(col);
