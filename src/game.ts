@@ -35,6 +35,30 @@ const config: GameConfig = {
 const game = new Phaser.Game(config);
 
 /**
+ * Font loading race fix: custom 'Arcade' font via @font-face may not be
+ * ready when TitleScene.create() renders its text objects. Phaser 3.16
+ * bakes fallback-font metrics into the text texture and never re-renders,
+ * producing broken/offset title text in browsers where the font loads
+ * slower than scene boot (Chromium resource scheduling differs from WebKit).
+ *
+ * Fix: Phaser waits for the font before booting any scene.
+ */
+const _FF: any = (window as any).FontFace;
+const ARCADE_FONT = new _FF(
+	'Arcade',
+	'url(assets/fonts/arcade.ttf)'
+);
+ARCADE_FONT.load()
+	.then(() => {
+		(document as any).fonts.add(ARCADE_FONT);
+		game.scene.start('TitleScene');
+	})
+	.catch(() => {
+		// Font failed to load (offline, blocked) — start anyway with fallback
+		game.scene.start('TitleScene');
+	});
+
+/**
  * Mobile viewport fix: set parent element height via JS to avoid
  * CSS viewport unit (100vh/100dvh) differences across browsers.
  * Brave, Mi Browser, Chrome, Safari all report different innerHeight
