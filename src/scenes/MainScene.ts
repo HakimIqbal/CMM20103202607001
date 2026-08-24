@@ -90,22 +90,34 @@ export class MainScene extends LevelScene {
 		// Frame is 64x64. Sit the BOTTOM edge on the ground line:
 		// centerY = groundTop - displayHeight/2.
 		const groundTopY = this.map.platforms.y + row * 16 * this.map.scalingFactor;
-		const y = groundTopY - (64 * chestScale) / 2;
+		// Sink slightly INTO the grass line: the tile art draws grass tufts
+		// above the collision surface, so an exact bottom-on-line chest
+		// reads as floating. A few px of overlap grounds it visually.
+		const sinkPx = 6 * scale;
+		const y = groundTopY - (64 * chestScale) / 2 + sinkPx;
 		const sprite = this.add.sprite(x, y, 'loveChest') as unknown as LevelSprite;
 		sprite.setScale(chestScale);
 		sprite.setDepth(46);
 		this.physics.add.existing(sprite, true); // static body for overlap only
 		this.chest.create({ sprite });
-		// generous invisible sensor: opening must feel effortless, not
-		// pixel-hunting the sprite's hitbox.
-		const zone = this.add.zone(x, y, 160 * scale, 140 * scale);
+		// OPEN = JUMP ON TOP of the chest (stomp), same rule as killing a
+		// slime: land from above with your previous frame's bottom above
+		// the chest top. Walking into it does nothing.
+		const zone = this.add.zone(x, y - 20 * scale, 120 * scale, 60 * scale);
 		this.physics.add.existing(zone, true);
 		this.physics.add.overlap(this.player.sprite, zone, () => {
+			if (this.finishing || this.gameOver) return;
+			const pbody = this.player.sprite.body;
+			const zbody = zone.body as Phaser.Physics.Arcade.StaticBody;
+			const landed =
+				this.playerPrevBottom <= zbody.top + 14 &&
+				pbody.bottom >= zbody.top;
+			if (!landed) return;
 			void this.winLevel();
 		});
 		// interaction hint floats above the chest
 		const hint = this.add
-			.text(x, y - 70 * scale, 'TAP / SPACE TO OPEN', {
+			.text(x, y - 70 * scale, 'JUMP ON TOP!', {
 				fontFamily: 'Arcade',
 				fontSize: `${Math.round(11 * scale)}px`,
 				color: '#ffffff',
@@ -121,8 +133,6 @@ export class MainScene extends LevelScene {
 			yoyo: true,
 			repeat: -1
 		});
-		// auto-open when the player simply walks into the chest area too —
-		// but the hint tells them any touch opens it.
 	}
 
 	private async winLevel() {
