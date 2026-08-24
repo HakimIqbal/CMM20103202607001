@@ -64,6 +64,9 @@ export class Enemy {
 	private lastTurnAt: number = 0;
 	private nextHopAt: number = 0;
 	private stuckSince: number = 0;
+	/** real-displacement tracking for the stuck detector */
+	private lastPosX: number = -1;
+	private lastPosAt: number = 0;
 	/** when true, the slime mirrors the player's walking direction */
 	public mirrorPlayer: boolean = false;
 
@@ -135,18 +138,27 @@ export class Enemy {
 		}
 
 		// ---- priority 3: NEVER FREEZE (hop when stuck) ---------------
-		const stalledNow = Math.abs(this.sprite.body.velocity.x) < 8;
+		// Stuck = REAL displacement near-zero regardless of velocity value.
+		// A slime pressing against a wall has velocity but moves nowhere;
+		// checking only velocity misses that case entirely.
+		const movedX = Math.abs(this.sprite.x - this.lastPosX);
+		const stalledNow = this.sprite.body.onFloor() && movedX < 2 && now - this.lastPosAt > 400;
 		if (stalledNow) {
-			if (this.stuckSince === 0) this.stuckSince = now;
-			else if (now - this.stuckSince > 600) {
-				// hop toward desired dir (or flip if unsafe)
+			if (this.stuckSince === 0) {
+				this.stuckSince = now;
+			} else if (now - this.stuckSince > 600) {
+				// unstick: hop toward desired dir (or flip if unsafe)
 				const d = this.desiredDir !== 0 ? this.desiredDir : (vx >= 0 ? 1 : -1);
 				this.sprite.setVelocity(d * this.speed * 1.4, -350);
 				this.stuckSince = 0;
 				this.lastTurnAt = now;
 			}
-		} else {
+		} else if (movedX >= 2) {
 			this.stuckSince = 0;
+		}
+		if (now - this.lastPosAt > 400) {
+			this.lastPosX = this.sprite.x;
+			this.lastPosAt = now;
 		}
 
 		// ---- periodic hop for liveliness ------------------------------
