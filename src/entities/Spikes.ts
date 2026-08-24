@@ -43,10 +43,10 @@ export class Spikes {
 		});
 
 		const layerYOffset = layer.y || 0;
+		const placedX = new Set<number>();
 
 		for (const spot of spots) {
-			let row = spot.row;
-			// Snap down to the first solid platform row below the marker.
+			// Find the first solid platform row at/below the marker.
 			let found = -1;
 			for (let r = spot.row; r < map.height; r++) {
 				if (platforms.hasTileAt(spot.col, r)) {
@@ -54,8 +54,14 @@ export class Spikes {
 					break;
 				}
 			}
-			if (found >= 0) row = found - 1; // sit on top of that tile
+			// No ground anywhere below (marker sits over a pit): spawning here
+			// would leave the spike floating in mid-air — drop it entirely.
+			if (found < 0) continue;
+			const row = found - 1; // sit on top of that tile
 			const worldX = spot.col * 16 * scale + 8 * scale;
+			// Dedupe: two markers in one column snap to the same spot.
+			if (placedX.has(worldX)) continue;
+			placedX.add(worldX);
 			const worldY =
 				row * 16 * scale + 8 * scale + layerYOffset;
 			const s = this.scene.physics.add.staticSprite(
