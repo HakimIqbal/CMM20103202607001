@@ -67,6 +67,36 @@ export class MainScene extends LevelScene {
 		this.hud.create();
 		this.hud.setLives(this.lives);
 		this.sfx.create();
+		this.watchViewportDrift();
+	}
+
+	/**
+	 * Chromium-only hazard: late window resizes (bookmark bar toggle, zoom,
+	 * devtools) fire AFTER this scene anchored its tilemap layers and spawned
+	 * entities. Every position derives from scene.height at create-time, so
+	 * a post-boot resize leaves tiles/bodies offset from each other — which
+	 * reads as spikes floating above the grass. Safari almost never fires
+	 * these, matching the "Chrome/Brave broken, Safari fine" report.
+	 * Fix: detect drift, rebuild the scene against the final viewport.
+	 */
+	private watchViewportDrift(): void {
+		const key = (): string =>
+			`${Math.round(this.scale.width)}x${Math.round(this.scale.height)}`;
+		let last = key();
+		this.time.addEvent({
+			delay: 350,
+			loop: true,
+			callback: () => {
+				const now = key();
+				if (now !== last && !this.gameOver) {
+					last = now;
+					const data =
+						((this.scene.settings && this.scene.settings.data) ||
+							{}) as { level?: number };
+					this.scene.restart(data);
+				}
+			}
+		});
 	}
 
 	/** spike tiles: overlap = -1 heart; respects invincibility window */

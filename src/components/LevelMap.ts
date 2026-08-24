@@ -63,6 +63,26 @@ export class LevelMap {
 		this.background.update();
 	}
 
+	/**
+	 * Re-anchor every tilemap layer to the CURRENT scene height.
+	 *
+	 * Chrome/Brave fire a window resize AFTER the scene boots (bookmark bar,
+	 * zoom, devtools). createLayer() anchors layers once at boot; without a
+	 * re-anchor, layer.y keeps the stale value while the camera/viewport
+	 * moves — tiles then render offset from their physics bodies, which
+	 * reads as spikes "floating above the grass" on Chromium only.
+	 */
+	public refreshAnchors(): void {
+		const h = this.scene.height;
+		const layers: Phaser.Tilemaps.DynamicTilemapLayer[] = [
+			this.platforms,
+			this.spikeLayer
+		];
+		layers.forEach(layer => {
+			layer.y = h - layer.displayHeight;
+		});
+	}
+
 	public getStartPosition(): Vector2Like {
 		const { displayX, displayY } = this.startPosition;
 		return { x: displayX, y: displayY };
