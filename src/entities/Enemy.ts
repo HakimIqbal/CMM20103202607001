@@ -16,9 +16,10 @@ export class Enemy {
 	private speed: number;
 	private dead: boolean = false;
 
-	constructor({ scene, position }: { scene: LevelScene; position: Vector2Like }) {
+	constructor({ scene, position, speedMultiplier }: { scene: LevelScene; position: Vector2Like; speedMultiplier?: number }) {
 		this.scene = scene;
-		this.speed = Phaser.Math.Between(40, 70);
+		const mult = speedMultiplier || 1;
+		this.speed = Phaser.Math.Between(40, 70) * mult;
 	}
 
 	public preload(): void {

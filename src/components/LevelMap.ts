@@ -15,9 +15,12 @@ export class LevelMap {
 	private tiles: Phaser.Tilemaps.Tileset;
 	private background: LevelBackground;
 	private scaling: number = 3;
+	/** current level (1-based) — drives difficulty scaling */
+	public level: number = 1;
 
-	constructor({ scene }: { scene: LevelScene }) {
+	constructor({ scene, level }: { scene: LevelScene; level?: number }) {
 		this.scene = scene;
+		if (level) this.level = level;
 		this.background = new LevelBackground({ scene });
 	}
 
@@ -95,10 +98,11 @@ export class LevelMap {
 
 	/**
 	 * Enemy spawn points: ground columns between coin spots, standing ON the surface.
+	 * Difficulty scales with level: higher level = tighter spacing (more enemies).
 	 */
 	private computeEnemyPositions(): void {
 		const mapW = this.map.width;
-		const step = 14;
+		const step = Math.max(9, 14 - (this.level - 1) * 2); // L1:14 L2:12 L3+:10..9
 		for (let x = 12; x < mapW - 6; x += step) {
 			const surfaceRow = this.findSurfaceRow(x);
 			if (surfaceRow == null) continue;
