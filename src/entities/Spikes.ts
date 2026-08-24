@@ -79,9 +79,13 @@ export class Spikes {
 				layer.putTileAt(Spikes.TILE_INDEX + 1, spot.col, targetRow);
 			}
 
+			// CRITICAL: the physics body MUST use targetRow (the snapped
+			// position), not spot.row (the raw marker). Using the marker row
+			// desyncs body from tile whenever a snap happened — the drawn
+			// spike sits on the grass while an invisible body floats higher.
 			const worldX = spot.col * 16 * scale + 8 * scale;
 			const worldY =
-				spot.row * 16 * scale + 8 * scale + (layer.y || 0);
+				targetRow * 16 * scale + 8 * scale + (layer.y || 0);
 			const b = this.scene.physics.add.staticImage(
 				worldX,
 				worldY,
