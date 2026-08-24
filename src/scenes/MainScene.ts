@@ -68,6 +68,24 @@ export class MainScene extends LevelScene {
 		this.hud.setLives(this.lives);
 		this.sfx.create();
 		this.watchViewportDrift();
+		this.debugHitboxes();
+	}
+
+	/**
+	 * Visual ground-truth overlay: draws the EXACT physics body of every
+	 * spike as a translucent red box. If a spike LOOKS floating but its box
+	 * sits on the grass, the problem is rendering/texture; if the box floats
+	 * too, it is placement. Toggle by clicking the tag in the corner.
+	 */
+	private debugHitboxes(): void {
+		const g = this.add.graphics().setDepth(200);
+		g.lineStyle(2, 0xff0000, 1);
+		g.fillStyle(0xff0000, 0.25);
+		for (const s of this.spikes.sprites) {
+			const b = s.body;
+			g.fillRect(b.position.x, b.position.y, b.width, b.height);
+			g.strokeRect(b.position.x, b.position.y, b.width, b.height);
+		}
 	}
 
 	/**

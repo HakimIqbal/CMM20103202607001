@@ -34,7 +34,7 @@ const game = new Phaser.Game(config);
 
 // Build marker: lets the operator verify which bundle a client actually
 // loaded (check browser console).
-console.log('[PixelQuest] build 2408-6 · spikes v6 resize-drift guard');
+console.log('[PixelQuest] build 2408-7 · spikes v7 cache-bust + hitbox debug');
 
 // Debug handle for automated testing / headless verification.
 if (typeof window !== 'undefined') {

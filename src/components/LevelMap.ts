@@ -22,8 +22,10 @@ export class LevelMap {
 	}
 
 	public preload() {
-		this.scene.load.image('tiles', 'assets/tilemaps/extruded.png');
-		this.scene.load.tilemapTiledJSON('map', 'assets/tilemaps/base.json');
+		// Cache-busted URLs: these files change content between deploys while
+		// keeping the same path — browsers may serve stale copies forever.
+		this.scene.load.image('tiles', 'assets/tilemaps/extruded.png?v=24087');
+		this.scene.load.tilemapTiledJSON('map', 'assets/tilemaps/base.json?v=24087');
 		this.background.preload();
 	}
 
