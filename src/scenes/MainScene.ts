@@ -81,12 +81,16 @@ export class MainScene extends LevelScene {
 		const row = this.map.getSurfaceRow(col);
 		const scale = this.map.scalingFactor - 1;
 		const x = col * 16 * this.map.scalingFactor + 8 * this.map.scalingFactor;
-		const y =
-			this.map.platforms.y +
-			row * 16 * this.map.scalingFactor -
-			32 * scale; // half chest height above ground line
+		// Chest at world scale (2x) was 128px — bigger than the player and
+		// it read as a boss prop. 0.75x of that (~96px, slightly wider than
+		// the player) keeps it "important goal" without the comedy size.
+		const chestScale = scale * 0.75;
+		// Frame is 64x64. Sit the BOTTOM edge on the ground line:
+		// centerY = groundTop - displayHeight/2.
+		const groundTopY = this.map.platforms.y + row * 16 * this.map.scalingFactor;
+		const y = groundTopY - (64 * chestScale) / 2;
 		const sprite = this.add.sprite(x, y, 'loveChest') as unknown as LevelSprite;
-		sprite.setScale(scale);
+		sprite.setScale(chestScale);
 		sprite.setDepth(46);
 		this.physics.add.existing(sprite, true); // static body for overlap only
 		this.chest.create({ sprite });
