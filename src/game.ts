@@ -34,7 +34,7 @@ const game = new Phaser.Game(config);
 
 // Build marker: lets the operator verify which bundle a client actually
 // loaded (check browser console).
-console.log('[PixelQuest] build 2408-12 · hop landing-zone safety');
+console.log('[PixelQuest] build 2408-13 · slime split into 3 minis');
 
 // Debug handle for automated testing / headless verification.
 if (typeof window !== 'undefined') {

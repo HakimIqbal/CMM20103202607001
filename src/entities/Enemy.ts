@@ -219,6 +219,8 @@ export class Enemy {
 	/**
 	 * Called when player collides with this enemy.
 	 * Returns 'stomp' if the player hit from above (enemy dies), else 'hurt'.
+	 * When a BIG slime is stomped it splits: this.splitInto(3) is invoked by
+	 * the scene so the new minis join the live enemy list.
 	 */
 	public interact(playerBottom: number, playerPrevBottom: number): 'stomp' | 'hurt' {
 		if (this.dead) return 'hurt';
@@ -226,14 +228,32 @@ export class Enemy {
 			playerPrevBottom <= this.sprite.body.top + 8 &&
 			playerBottom >= this.sprite.body.top;
 		if (stomped) {
+			if (this.onStomped) this.onStomped(this);
 			this.kill();
 			return 'stomp';
 		}
 		return 'hurt';
 	}
 
+	/** set by the scene: called with `this` right before a stomped slime dies */
+	public onStomped?: (slime: Enemy) => void;
+
 	public get isDead(): boolean {
 		return this.dead;
+	}
+
+	public get isMini(): boolean {
+		return this.mini;
+	}
+
+	private mini: boolean = false;
+
+	/** mark as mini: smaller sprite, faster, chases the player relentlessly */
+	public makeMini(scale: number): void {
+		this.mini = true;
+		this.speed = Math.round(this.speed * 1.3);
+		this.sprite.setScale(scale);
+		this.sprite.body.setSize(24, 18);
 	}
 
 	private kill(): void {

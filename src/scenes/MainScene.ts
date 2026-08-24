@@ -74,6 +74,8 @@ export class MainScene extends LevelScene {
 			const enemy = new Enemy({ scene: this, position: pos });
 			enemy.create(pos, this.map.scalingFactor - 1);
 			enemy.mirrorPlayer = true; // aggro switch (kept name)
+			// BIG slimes split into 3 minis when stomped (spec: STEP 2)
+			enemy.onStomped = (slime) => this.splitSlime(slime);
 			enemy.hasGroundAt = (x: number, y: number) => {
 				// World -> tile conversion must use the LAYER's scale
 				// (map.scalingFactor = 3, not the enemy sprite scale = 2)
@@ -84,6 +86,7 @@ export class MainScene extends LevelScene {
 				const row = Math.floor((y - layerY) / layerScale / 16);
 				return this.map.platforms.hasTileAt(col, row);
 			};
+			this.enemyHasGroundAt = enemy.hasGroundAt;
 			this.enemies.push(enemy);
 			this.physics.add.collider(enemy.sprite, this.map.platforms);
 			this.physics.add.collider(enemy.sprite, this.map.platformObjects);
@@ -94,6 +97,38 @@ export class MainScene extends LevelScene {
 			);
 		});
 	}
+
+	/**
+	 * STEP 2: a stomped BIG slime bursts into 3 mini slimes that spawn in a
+	 * fan (left / center / right) around the split point. Minis inherit the
+	 * same ground/ledge rules; their chase behavior is tuned in makeMini.
+	 */
+	private splitSlime(slime: Enemy): void {
+		if (slime.isMini) return; // only big slimes split
+		const scale = this.map.scalingFactor - 1;
+		const cx = slime.sprite.x;
+		const cy = slime.sprite.y;
+		const offsets = [-34, 0, 34]; // fan: left, center, right
+		for (const dx of offsets) {
+			const mini = new Enemy({ scene: this, position: { x: cx + dx, y: cy } });
+			mini.create({ x: cx + dx, y: cy }, scale * 0.6);
+			mini.makeMini(scale * 0.6);
+			mini.mirrorPlayer = true;
+			mini.hasGroundAt = this.enemyHasGroundAt;
+			mini.onStomped = undefined; // minis do NOT split further
+			this.physics.add.collider(mini.sprite, this.map.platforms);
+			this.physics.add.collider(mini.sprite, this.map.platformObjects);
+			this.physics.add.overlap(
+				this.player.sprite,
+				mini.sprite,
+				() => this.handleEnemyTouch(mini)
+			);
+			this.enemies.push(mini);
+		}
+	}
+
+	/** shared ground probe for every enemy (big or mini) */
+	private enemyHasGroundAt?: (x: number, y: number) => boolean;
 
 	private handleEnemyTouch(enemy: Enemy) {
 		if (enemy.isDead || this.time.now < this.invincibleUntil) return;
