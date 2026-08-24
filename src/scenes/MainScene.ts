@@ -1,5 +1,5 @@
-import { Dialog, DoorState, Hud, LevelMap, LevelSprite } from '@src/components';
-/* NOTE: door/loveChest systems temporarily disabled for Step 2 testing.
+import { Dialog, Hud, LevelMap, LevelSprite } from '@src/components';
+/* NOTE: loveChest system temporarily disabled for Step 2 testing.
    Will be reintroduced as the level goal in Step 3. */
 import { Coin } from '@src/entities/Coin';
 import { Enemy } from '@src/entities/Enemy';
@@ -24,7 +24,6 @@ export class MainScene extends LevelScene {
 	private invincibleUntil: number = 0;
 	private heartIcons: Phaser.GameObjects.Image[] = [];
 	private sfx!: Sfx;
-	private door!: Phaser.GameObjects.Sprite;
 	private level: number = 1;
 	private finishing: boolean = false;
 	private musicPlaylist: MusicPlaylist;
@@ -52,10 +51,6 @@ export class MainScene extends LevelScene {
 		new Enemy({ scene: this, position: { x: 0, y: 0 } }).preload();
 		this.sfx = new Sfx({ scene: this });
 		this.sfx.preload();
-		this.load.spritesheet('door', 'assets/sprites/door.png', {
-			frameWidth: 54,
-			frameHeight: 141
-		});
 	}
 
 	public create() {
@@ -66,7 +61,6 @@ export class MainScene extends LevelScene {
 		this.addColliders();
 		this.spawnCoins();
 		this.spawnEnemies();
-		this.spawnGoalDoor();
 		this.hud = new Hud({ scene: this });
 		this.hud.create();
 		this.hud.setLives(this.lives);
@@ -161,42 +155,6 @@ export class MainScene extends LevelScene {
 
 	/** hearts row in HUD */
 	// (rendered by Hud via setLives)
-
-	private spawnGoalDoor() {
-		const pos = this.map.getDoorPosition();
-		this.door = this.add.sprite(pos.x, pos.y - 70 * (this.map.scalingFactor - 1), 'door');
-		this.door.setDepth(46);
-		this.physics.add.overlap(this.player.sprite, this.door, () => this.winLevel());
-	}
-
-	private winLevel() {
-		if (this.finishing) return;
-		this.finishing = true;
-		this.sfx.play('sfx_win');
-		this.player.toggleFreeze(true);
-		const w = this.scale.width;
-		const banner = this.add
-			.text(this.cameras.main.midPoint.x, this.cameras.main.midPoint.y, 'LEVEL COMPLETE!', {
-				fontFamily: 'Arcade',
-				fontSize: `${Math.round(w / 24)}px`,
-				color: '#ffe98a',
-				stroke: '#2b3f8e',
-				strokeThickness: 6
-			})
-			.setOrigin(0.5)
-			.setDepth(80)
-			.setScrollFactor(0);
-		this.time.delayedCall(2200, () => {
-			banner.destroy();
-			this.finishing = false;
-			if (this.level >= 3) {
-				this.scene.start('WinScene', { score: this.score });
-				return;
-			}
-			this.level += 1;
-			this.scene.restart({ level: this.level, score: this.score });
-		}, [], this);
-	}
 
 	public get currentLevel(): number {
 		return this.level;

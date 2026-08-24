@@ -1,12 +1,10 @@
 import { LevelScene } from '@src/scenes';
-import { Doors } from './Doors';
 import { LevelBackground } from './LevelBackground';
 
 export class LevelMap {
 	public platforms: Phaser.Tilemaps.DynamicTilemapLayer;
 	public platformObjects: Phaser.Tilemaps.DynamicTilemapLayer;
 	public map: Phaser.Tilemaps.Tilemap;
-	public doors: Doors;
 	private startPosition: LevelObject;
 	private coinPositions: Vector2Like[] = [];
 	private enemyPositions: Vector2Like[] = [];
@@ -19,15 +17,12 @@ export class LevelMap {
 	constructor({ scene }: { scene: LevelScene }) {
 		this.scene = scene;
 		this.background = new LevelBackground({ scene });
-		// doors disabled for step 2 testing
-		// this.doors = new Doors({ scene });
 	}
 
 	public preload() {
 		this.scene.load.image('tiles', 'assets/tilemaps/extruded.png');
 		this.scene.load.tilemapTiledJSON('map', 'assets/tilemaps/base.json');
 		this.background.preload();
-		// this.doors.preload();
 	}
 
 	public create() {
@@ -45,9 +40,7 @@ export class LevelMap {
 		this.objectsLayer = this.map.getObjectLayer('objects');
 		this.computeCoinPositions();
 		this.computeEnemyPositions();
-		this.computeDoorPosition();
 		this.startPosition = this.getObject('startPosition');
-		// this.doors.create({ level: this });
 
 		this.scene.physics.world.setBounds(
 			0,
@@ -65,7 +58,6 @@ export class LevelMap {
 
 	public update() {
 		this.background.update();
-		// this.doors.update();
 	}
 
 	public getStartPosition(): Vector2Like {
@@ -98,16 +90,6 @@ export class LevelMap {
 		return null;
 	}
 
-	private computeDoorPosition(): void {
-		let col = this.map.width - 2;
-		while (col > 0 && this.findSurfaceRow(col) == null) col--;
-		const row = this.findSurfaceRow(col) || 25;
-		this.doorPosition = {
-			x: col * 16 * this.scaling,
-			y: (this.scene.height - this.platforms.displayHeight) + row * 16 * this.scaling
-		};
-	}
-
 	/**
 	 * Enemy spawn points: ground columns between coin spots, standing ON the surface.
 	 */
@@ -127,13 +109,6 @@ export class LevelMap {
 
 	public getEnemyPositions(): Vector2Like[] {
 		return this.enemyPositions;
-	}
-
-	private doorPosition: Vector2Like = { x: 0, y: 0 };
-
-	/** door sits on the last solid column of the map */
-	public getDoorPosition(): Vector2Like {
-		return this.doorPosition;
 	}
 
 	public get scalingFactor(): number {

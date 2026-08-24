@@ -1,6 +1,6 @@
 import { LevelScene } from '@src/scenes';
 import { sleep } from '@src/utils';
-import { LevelSprite } from './Doors';
+import { LevelSprite } from './types';
 import { FlyingText } from './FlyingText';
 
 export class LoveChest {
@@ -41,7 +41,7 @@ export class LoveChest {
 
 	public async open(giftsCount: number = 1) {
 		this.sprite.play(this.animation.key);
-		this.sprite.body.checkCollision.none = true;
+		(this.sprite as any).body.checkCollision.none = true;
 		await sleep(30);
 
 		const { x, y } = this.sprite.getCenter();
