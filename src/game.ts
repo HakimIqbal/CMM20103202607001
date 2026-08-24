@@ -32,6 +32,11 @@ const config: GameConfig = {
 
 const game = new Phaser.Game(config);
 
+// Debug handle for automated testing / headless verification.
+if (typeof window !== 'undefined') {
+	(window as unknown as { __game: Phaser.Game }).__game = game;
+}
+
 // Register scenes manually (config.scene is empty so nothing auto-starts)
 game.scene.add('TitleScene', TitleScene, false);
 game.scene.add('MainScene', MainScene, false);

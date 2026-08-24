@@ -3,6 +3,7 @@ import { Dialog, Hud, LevelMap, LevelSprite } from '@src/components';
    Will be reintroduced as the level goal in Step 3. */
 import { Coin } from '@src/entities/Coin';
 import { Enemy } from '@src/entities/Enemy';
+import { Spikes } from '@src/entities/Spikes';
 import { Sfx } from '@src/components/Sfx';
 import { MusicPlaylist } from '@src/components/MusicPlaylist';
 import { Player } from '@src/entities';
@@ -49,6 +50,7 @@ export class MainScene extends LevelScene {
 		this.player.preload();
 		new Coin({ scene: this }).preload();
 		new Enemy({ scene: this, position: { x: 0, y: 0 } }).preload();
+		new Spikes({ scene: this }).preload();
 		this.sfx = new Sfx({ scene: this });
 		this.sfx.preload();
 	}
@@ -61,10 +63,25 @@ export class MainScene extends LevelScene {
 		this.addColliders();
 		this.spawnCoins();
 		this.spawnEnemies();
+		this.spawnSpikes();
 		this.hud = new Hud({ scene: this });
 		this.hud.create();
 		this.hud.setLives(this.lives);
 		this.sfx.create();
+	}
+
+	/** spike tiles: overlap = -1 heart; respects invincibility window */
+	private spikes: Spikes;
+
+	private spawnSpikes() {
+		if (!this.spikes) this.spikes = new Spikes({ scene: this });
+		this.spikes.create(this.map.spikeLayer, this.map.scalingFactor);
+		for (const s of this.spikes.sprites) {
+			this.physics.add.overlap(this.player.sprite, s, () => {
+				if (this.gameOver || this.time.now < this.invincibleUntil) return;
+				this.loseHeart();
+			});
+		}
 	}
 
 	private spawnEnemies() {
