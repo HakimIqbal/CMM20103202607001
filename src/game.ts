@@ -32,6 +32,10 @@ const config: GameConfig = {
 
 const game = new Phaser.Game(config);
 
+// Build marker: lets the operator verify which bundle a client actually
+// loaded (check browser console).
+console.log('[PixelQuest] build 2408-4 · spikes v4 (pit-drop + dedupe + wood)');
+
 // Debug handle for automated testing / headless verification.
 if (typeof window !== 'undefined') {
 	(window as unknown as { __game: Phaser.Game }).__game = game;
