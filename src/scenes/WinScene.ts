@@ -84,7 +84,7 @@ export class WinScene extends LevelScene {
 			repeat: -1
 		});
 
-		const restart = () => this.scene.start('GameScene', { level: 1, score: 0 });
+		const restart = () => this.scene.start('MainScene', { level: 1, score: 0 });
 		this.input.keyboard.once('keydown-SPACE', restart);
 		this.input.once('pointerdown', restart);
 	}

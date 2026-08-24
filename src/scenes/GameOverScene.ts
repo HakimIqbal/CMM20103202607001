@@ -65,7 +65,7 @@ export class GameOverScene extends LevelScene {
 		});
 
 		const restart = () => {
-			this.scene.start('GameScene', { level: this.level, score: 0 });
+			this.scene.start('MainScene', { level: this.level, score: 0 });
 		};
 		this.input.keyboard.once('keydown-SPACE', restart);
 		this.input.once('pointerdown', restart);

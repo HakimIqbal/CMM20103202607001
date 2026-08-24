@@ -83,7 +83,7 @@ export class TitleScene extends LevelScene {
 		const start = () => {
 			if (this.started) return;
 			this.started = true;
-			this.scene.start('GameScene', { level: 1 });
+			this.scene.start('MainScene', { level: 1 });
 		};
 		this.input.keyboard.once('keydown-SPACE', start);
 		this.input.keyboard.once('keydown-ENTER', start);

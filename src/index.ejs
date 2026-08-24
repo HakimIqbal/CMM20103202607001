@@ -4,7 +4,7 @@
 		<meta charset="UTF-8" />
 		<meta
 			name="viewport"
-			content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+			content="width=device-width, initial-scale=1, user-scalable=no"
 		/>
 		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
 
@@ -106,10 +106,12 @@
 				background-color: #448aff;
 				overflow: hidden;
 			}
-			#phaser-game {
+			#game {
 				position: fixed;
 				top: 0;
 				left: 0;
+				width: 100%;
+				height: 100%;
 			}
 			.arcade-text {
 				font-family: 'Arcade';
@@ -263,7 +265,7 @@
 			Please enable javascript to continue using this application.
 		</noscript>
 
-		<div id="phaser-game"></div>
+		<div id="game"></div>
 
 		<div id="dialog" class="hidden">
 			<div class="dialog-content">
