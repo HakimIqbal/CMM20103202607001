@@ -105,6 +105,31 @@ export class MainScene extends LevelScene {
 		// the celebration window (a patrolling slime near the chest would
 		// otherwise drain hearts mid-confetti and steal the victory).
 		this.invincibleUntil = Number.MAX_SAFE_INTEGER;
+		// celebratory banner right above the chest — the moment should SAY
+		// something, not just sparkle.
+		const w = this.scale.width;
+		const banner = this.add
+			.text(
+				this.cameras.main.midPoint.x,
+				this.cameras.main.midPoint.y - 120,
+				'YOU WIN! ❤',
+				{
+					fontFamily: 'Arcade',
+					fontSize: `${Math.round(w / 16)}px`,
+					color: '#ffe98a',
+					stroke: '#2b3f8e',
+					strokeThickness: Math.max(4, Math.round(w / 160))
+				}
+			)
+			.setOrigin(0.5)
+			.setDepth(90)
+			.setScrollFactor(0);
+		this.tweens.add({
+			targets: banner,
+			scale: { from: 0.6, to: 1 },
+			duration: 350,
+			ease: 'Back.easeOut'
+		});
 		try {
 			await this.chest.open(5);
 		} catch (e) {

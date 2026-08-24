@@ -23,7 +23,7 @@ export class TitleScene extends LevelScene {
 		// Build tag (tiny, corner): lets the operator verify the loaded
 		// bundle version on any device without devtools.
 		this.add
-			.text(w - 8, h - 8, 'v2408-21', {
+			.text(w - 8, h - 8, 'v2408-22', {
 				fontFamily: 'monospace',
 				fontSize: '11px',
 				color: '#ffffff'
