@@ -41,28 +41,28 @@ game.scene.add('GameOverScene', GameOverScene, false);
 game.scene.add('WinScene', WinScene, false);
 
 /**
- * Font loading race fix: custom 'Arcade' font via @font-face may not be
- * ready when TitleScene.create() renders its text objects. Phaser 3.16
- * bakes fallback-font metrics into the text texture and never re-renders,
- * producing broken/offset title text in browsers where the font loads
- * slower than scene boot (Chromium resource scheduling differs from WebKit).
+ * Font loading race fix: wait until the 'Arcade' font is actually loaded
+ * before starting TitleScene, so Phaser bakes correct pixel-font metrics
+ * into text textures on the very first render.
  *
- * Fix: Phaser waits for the font before booting any scene.
+ * Uses document.fonts.load() which works with the CSS @font-face rule —
+ * no duplicate FontFace registration (which can confuse Chromium's font
+ * matching). Safety timeout: if the font never loads (offline/blocked),
+ * start anyway after 3s so the game is never stuck.
  */
-const _FF: any = (window as any).FontFace;
-const ARCADE_FONT = new _FF(
-	'Arcade',
-	'url(assets/fonts/arcade.ttf)'
-);
-ARCADE_FONT.load()
-	.then(() => {
-		(document as any).fonts.add(ARCADE_FONT);
-		game.scene.start('TitleScene');
-	})
-	.catch(() => {
-		// Font failed to load (offline, blocked) — start anyway with fallback
-		game.scene.start('TitleScene');
-	});
+const startGame = () => {
+	const ts: any = (game.scene as any).getScene('TitleScene');
+	if (ts && ts.scene && ts.scene.isActive()) return;
+	game.scene.start('TitleScene');
+};
+
+Promise.race([
+	(document as any).fonts.load('16px Arcade').then(() => (document as any).fonts.ready),
+	new Promise(resolve => setTimeout(resolve, 3000))
+]).then(() => {
+	// One more frame for the font to settle in the renderer
+	requestAnimationFrame(() => startGame());
+});
 
 /**
  * Mobile viewport fix: set parent element height via JS to avoid
