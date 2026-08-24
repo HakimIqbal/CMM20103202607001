@@ -67,15 +67,21 @@ export class Enemy {
 	/** real-displacement tracking for the stuck detector */
 	private lastPosX: number = -1;
 	private lastPosAt: number = 0;
-	/** when true, the slime mirrors the player's walking direction */
-	public mirrorPlayer: boolean = false;
-
-	/** called by the scene every frame with the player's facing direction (-1/1) */
-	public setPlayerFacing(dir: number): void {
-		this.desiredDir = dir;
+	/** injected by the scene every frame: the player's world position */
+	public setPlayerPos(x: number, y: number): void {
+		this.playerPosX = x;
+		this.playerPosY = y;
 	}
 
-	private desiredDir: number = 0;
+	private playerPosX: number = 0;
+	private playerPosY: number = -9999;
+	/** when true the slime reacts to the player's position (aggro) */
+	public mirrorPlayer: boolean = false;
+
+	/** aggro tuning */
+	private static readonly AGGRO_RANGE_X = 520;
+	private static readonly AGGRO_RANGE_Y = 80;
+	private static readonly CHASE_SPEED = 105;
 
 	public update(): void {
 		if (this.dead || !this.sprite.body) return;
@@ -110,30 +116,32 @@ export class Enemy {
 		}
 
 		// ---- MIRROR PLAYER (never into a pit) ------------------------
+		// Aggro: when the player is roughly on the same platform band and
+		// within range, walk TOWARD THE PLAYER'S POSITION (Goomba-style
+		// approach), not just mirror their facing. Ledge law still wins:
+		// never step toward a pit.
 		if (
 			this.mirrorPlayer &&
-			this.desiredDir !== 0 &&
-			wallHit !== this.desiredDir &&          // not pinned by a wall on that side
-			now - this.lastTurnAt > 400 &&
-			vx * this.desiredDir < 0                // moving opposite to player
+			this.hasGroundAt &&
+			this.sprite.body.onFloor() &&
+			Math.abs(this.playerPosY - this.sprite.y) < Enemy.AGGRO_RANGE_Y &&
+			Math.abs(this.playerPosX - this.sprite.x) < Enemy.AGGRO_RANGE_X
 		) {
-			// Only follow the player's direction if solid ground exists
-			// ahead in that direction — mirroring must respect the ledge law.
-			let safeToMirror = true;
-			if (this.sprite.body.onFloor() && this.hasGroundAt) {
+			const wantDir = this.playerPosX > this.sprite.x ? 1 : -1;
+			const chaseSpeed = Math.max(Enemy.CHASE_SPEED, this.speed);
+			if (wallHit !== wantDir) {
 				const probeX =
 					this.sprite.body.center.x +
-					(this.sprite.body.width / 3) * this.desiredDir;
+					(this.sprite.body.width / 3) * wantDir;
 				const probeY = this.sprite.body.bottom + 6;
-				safeToMirror = this.hasGroundAt(probeX, probeY);
-			}
-			if (safeToMirror) {
-				this.lastTurnAt = now;
-				this.sprite.setVelocityX(this.desiredDir * this.speed);
-			} else {
-				// refuse the unsafe direction: reverse instead of walking off
-				this.lastTurnAt = now;
-				this.sprite.setVelocityX(-this.desiredDir * this.speed);
+				if (this.hasGroundAt(probeX, probeY)) {
+					this.lastTurnAt = now;
+					this.sprite.setVelocityX(wantDir * chaseSpeed);
+				} else {
+					// ledge blocks the approach: patrol away from it
+					this.lastTurnAt = now;
+					this.sprite.setVelocityX(-wantDir * this.speed);
+				}
 			}
 		}
 
@@ -147,8 +155,8 @@ export class Enemy {
 			if (this.stuckSince === 0) {
 				this.stuckSince = now;
 			} else if (now - this.stuckSince > 600) {
-				// unstick: hop toward desired dir (or flip if unsafe)
-				const d = this.desiredDir !== 0 ? this.desiredDir : (vx >= 0 ? 1 : -1);
+				// unstick: hop toward current facing (or flip if unsafe)
+				const d = vx !== 0 ? (vx >= 0 ? 1 : -1) : this.playerPosX >= this.sprite.x ? 1 : -1;
 				this.sprite.setVelocity(d * this.speed * 1.4, -350);
 				this.stuckSince = 0;
 				this.lastTurnAt = now;

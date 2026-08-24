@@ -73,7 +73,7 @@ export class MainScene extends LevelScene {
 		positions.forEach(pos => {
 			const enemy = new Enemy({ scene: this, position: pos });
 			enemy.create(pos, this.map.scalingFactor - 1);
-			enemy.mirrorPlayer = true;
+			enemy.mirrorPlayer = true; // aggro switch (kept name)
 			enemy.hasGroundAt = (x: number, y: number) => {
 				const col = Math.floor(x / this.map.scalingFactor / 16);
 				const row = Math.floor(y / this.map.scalingFactor / 16);
@@ -181,9 +181,8 @@ export class MainScene extends LevelScene {
 		this.player.update();
 		this.playerPrevBottom = this.player.sprite.body.bottom;
 		// facing = last direction the character looked (flipX persists while standing)
-		const facing = this.player.sprite.flipX ? -1 : 1;
 		this.enemies.forEach(e => {
-			e.setPlayerFacing(facing);
+			e.setPlayerPos(this.player.sprite.x, this.player.sprite.y);
 			e.update();
 		});
 	}
