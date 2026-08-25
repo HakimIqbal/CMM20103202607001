@@ -27,7 +27,6 @@ export class MainScene extends LevelScene {
 	private chestX: number = 0;
 	private chestRow: number = 25;
 	private chestZone!: Phaser.GameObjects.Zone;
-	private dbgText?: Phaser.GameObjects.Text;
 	private level: number = 1;
 	private finishing: boolean = false;
 	private musicPlaylist: MusicPlaylist;
@@ -146,24 +145,6 @@ export class MainScene extends LevelScene {
 			const zbody = this.chestZone.body as Phaser.Physics.Arcade.StaticBody;
 			if (zbody) zbody.updateFromGameObject();
 		}
-		// DEBUG (temporary): live numbers so device-side mismatches are
-		// readable straight from a screenshot.
-		if (!this.dbgText) {
-			this.dbgText = this.add
-				.text(10, 10, '', {
-					fontFamily: 'monospace',
-					fontSize: '14px',
-					color: '#00ff00',
-					stroke: '#000000',
-					strokeThickness: 3
-				})
-				.setDepth(300)
-				.setScrollFactor(0);
-		}
-		this.dbgText.setText(
-			`h=${Math.round(this.scale.height)} layY=${Math.round(this.map.platforms.y)} ` +
-			`groundTop=${Math.round(groundTopY)} chestY=${Math.round(y)}`
-		);
 	}
 
 	private async winLevel() {
@@ -315,6 +296,13 @@ export class MainScene extends LevelScene {
 		}
 		if (this.lives <= 0) {
 			this.gameOver = true;
+			// Freeze player immediately — do NOT wait for the delay.
+			// Without this the player keeps moving during the 400 ms window
+			// and can still interact with the chest (which is blocked by
+			// the gameOver guard) creating a "chest won't open" illusion.
+			this.player.sprite.setVelocity(0, 0);
+			this.player.sprite.body.stop();
+			this.player.toggleFreeze(true);
 			this.sfx.play('sfx_gameover');
 			this.time.delayedCall(400, () => {
 				this.scene.start('GameOverScene', {
