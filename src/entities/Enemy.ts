@@ -78,8 +78,10 @@ export class Enemy {
 	/** when true the slime reacts to the player's position (aggro) */
 	public mirrorPlayer: boolean = false;
 
-	/** aggro tuning */
-	private static readonly AGGRO_RANGE_X = 520;
+	/** aggro tuning — 300 keeps spawn (col 0) out of the nearest slime's
+	 * aggro radius (~408px away): a retry must never be punished by an
+	 * instant chase-kill loop at the spawn point. */
+	private static readonly AGGRO_RANGE_X = 300;
 	private static readonly AGGRO_RANGE_Y = 80;
 	private static readonly CHASE_SPEED = 105;
 	/** how often the slime re-evaluates chase direction (reaction delay) */
