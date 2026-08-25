@@ -13,12 +13,15 @@ export class Hud {
 	}
 
 	public create(): void {
+		// Scale-relative sizing: fixed pixel sizes looked tiny on wide /
+		// high-DPI screens. Everything derives from viewport width now.
+		const w = this.scene.scale.width;
 		this.scoreText = this.scene.add.text(24, 18, '', {
 			fontFamily: 'Arcade',
-			fontSize: '26px',
+			fontSize: `${Math.round(Math.max(30, w / 34))}px`,
 			color: '#ffe98a',
 			stroke: '#2b3f8e',
-			strokeThickness: 4
+			strokeThickness: Math.round(w / 220)
 		});
 		this.scoreText.setScrollFactor(0).setDepth(60);
 		this.setScore(0);
@@ -32,7 +35,7 @@ export class Hud {
 		if (this.hearts.length === 0) {
 			for (let i = 0; i < 3; i++) {
 				const h = this.scene.add.image(0, 0, 'heart');
-				h.setScale(2).setScrollFactor(0).setDepth(60);
+				h.setScrollFactor(0).setDepth(60);
 				h.setOrigin(1, 0);
 				this.hearts.push(h);
 			}
@@ -44,7 +47,17 @@ export class Hud {
 
 	private layoutHearts(): void {
 		const w = this.scene.scale.width;
-		const gap = Math.max(40, w / 30);
-		this.hearts.forEach((h, i) => h.setPosition(w - w * 0.02 - i * gap, Math.round(w * 0.012)));
+		// Heart art is 16px — scale it up relative to viewport width
+		// (was a flat 2x = ~32px, tiny on modern screens; now ≈ w/22).
+		const heartScale = Math.max(3, w / 352);
+		const gap = Math.max(64, w / 18);
+		const topOffset = Math.max(16, w * 0.014);
+		this.hearts.forEach((h, i) => {
+			h.setScale(heartScale);
+			h.setPosition(
+				w - topOffset - i * gap,
+				topOffset
+			);
+		});
 	}
 }
