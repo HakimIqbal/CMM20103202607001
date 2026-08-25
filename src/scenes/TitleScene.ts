@@ -39,16 +39,7 @@ export class TitleScene extends LevelScene {
 		const h = this.scale.height;
 		const cx = w / 2;
 
-		// Build tag (tiny, corner): lets the operator verify the loaded
-		// bundle version on any device without devtools.
-		this.add
-			.text(w - 8, h - 8, 'v2408-35', {
-				fontFamily: 'monospace',
-				fontSize: '11px',
-				color: '#ffffff'
-			})
-			.setOrigin(1, 1)
-			.setDepth(100);
+
 
 		// ---- Layout Tuning: Clear Separation between Logo, Hero Art, and Prompts ----
 		// 1. Logo at top (0.16h & 0.28h)
