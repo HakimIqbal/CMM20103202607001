@@ -1,98 +1,88 @@
 # PIXEL QUEST 🎮
 
-> **A Contemporary Browser-Based 2D Platformer Game Built with HTML5, TypeScript, and Phaser 3.**  
-> Developed for **Multimedia Application (CMM21103)** — Management & Science University (MSU), July 2026 Semester.
+Pixel Quest is a 2D web platformer built with HTML5, TypeScript, and Phaser 3. It was created for the Multimedia Technology course (CMM20103) at Management & Science University (MSU) for the July 2026 session.
+
+The game runs directly in any modern desktop or mobile browser without extra plugins or downloads. Players control Ara as she runs, jumps, collects coins, stomps on slimes, avoids pits, and opens the Love Chest to finish the level.
 
 ---
 
-## 🌟 Overview
+## Screenshots
 
-**Pixel Quest** is a complete, install-free 2D platformer web application where players guide the hero **Ara** across a hand-crafted pixel-art environment: collecting coins, jumping on slimes, dodging hazards, and unsealing the **Love Chest** to complete the quest.
-
-Built entirely using modern open web technologies (Phaser 3.16 + TypeScript + WebAssembly/WebGL), **Pixel Quest** delivers zero-friction gameplay across both desktop laptops and mobile touchscreens without requiring any store installation or plugin download.
-
----
-
-## 📸 Screenshots & Showcase
-
-| **Title Screen (Live Showcase)** | **Gameplay & Combat** |
+| Title Screen | Gameplay & Combat |
 | :---: | :---: |
 | ![Title Screen](src/assets/images/readme/title-screen.png) | ![Gameplay](src/assets/images/readme/gameplay.png) |
-| *Animated title screen featuring Ara, hopping slimes, and floating hearts* | *Real-time physics, score tracking, coins, and enemy chase AI* |
+| Animated title scene with Ara, patrolling slimes, and hearts | Real-time physics, HUD score, coins, and enemy chase logic |
 
-| **Game Over Scene** | **Victory Celebration** |
+| Game Over Scene | Victory Celebration |
 | :---: | :---: |
 | ![Game Over](src/assets/images/readme/game-over.png) | ![Victory](src/assets/images/readme/victory.png) |
-| *Retro styled game-over stage with defeated Ara & mocking slimes* | *Celebratory stage with open Love Chest & heart particle fireworks* |
+| Retro game-over screen with Ara and mocking slimes | Victory screen with open Love Chest and heart particle bursts |
 
 ---
 
-## ✨ Key Features & Mechanics
+## Core Features
 
-- 🎨 **Five Integrated Multimedia Elements**
-  - **Graphics:** Pixel-art hero (Ara), 3 slime variants, minted coins, Love Chest, tilemap terrain, and 3-layer parallax skies.
-  - **Animation:** Walk/jump/fall sprite states, coin spins, hopping slimes, chest opening, and heart particle bursts.
-  - **Audio:** Loopable chiptune BGM playlist + 6 distinct event-driven chiptune SFX (jump, coin, stomp, hurt, game over, victory).
-  - **Text:** Arcade-style font rendering for HUD, banners, prompts, and score displays.
-  - **Interactivity:** Arcade physics, enemy perception AI, dual input (Keyboard + Touch), and persistent game state.
+- **Five Multimedia Elements**
+  - **Graphics:** Pixel art character sprites, slimes, coins, chest, tilemap terrain, and three parallax background layers.
+  - **Animation:** Sprite sheets for walking, jumping, and falling, plus spinning coins, hopping slimes, and heart particles.
+  - **Audio:** Loopable background music playlist and six distinct sound effects for jump, coin, stomp, hurt, game over, and victory.
+  - **Text:** Custom arcade pixel font for the HUD, score counter, prompts, and screen headers.
+  - **Interactivity:** Arcade physics, enemy chase behavior, dual input (keyboard and touch), and state management.
 
-- 👾 **Emergent Slime Split System**
-  - Stomping a **Big Slime** (+50 pts) triggers a split into **3 Mini Slimes** that scatter in a fan pattern. Minis are faster, smaller, and relentlessly chase the player!
+- **Slime Split System**
+  - Stomping a big slime yields 50 points and splits it into three mini slimes. Mini slimes are smaller, faster, and chase the player directly.
 
-- 🧰 **Stomp-to-Open Goal Finale**
-  - The quest culminates at the **Love Chest**. Players must land ON TOP of the chest (reusing the jump/stomp mechanic) to trigger the level victory and celebratory fireworks.
+- **Stomp to Open Goal**
+  - The level ends when the player lands on top of the Love Chest. Opening it uses the same jump and stomp mechanic as defeating enemies.
 
-- 🎯 **Fair-Play Stomp Mechanics**
-  - Frame-aware landing evaluation: stomp credit is never swallowed by invincibility frames, and fall speed tolerance ensures clean head-stomps are always rewarded fairly.
-
-- 📱 **Cross-Device Responsive Design**
-  - Fully responsive WebGL/Canvas layout that scales gracefully from desktop monitors to mobile touchscreens with dedicated touch-zone controls.
+- **Responsive Touch & Keyboard Controls**
+  - Works with keyboard controls on desktop and touch zone overlays on mobile screens.
 
 ---
 
-## 🕹️ Controls
+## Controls
 
-| Action | Desktop Controls | Mobile Touch Controls |
+| Action | Keyboard (Desktop) | Touch (Mobile) |
 | :--- | :--- | :--- |
-| **Move Left / Right** | `Left Arrow` / `Right Arrow` or `A` / `D` | Touch Left / Right third of screen |
-| **Jump** | `Space` / `Up Arrow` or `W` | Touch Top third of screen |
-| **Start / Retry** | `Space` / `Enter` | Tap Anywhere on screen |
+| Move Left / Right | Left / Right Arrows or A / D | Touch left or right side of screen |
+| Jump | Space / Up Arrow or W | Touch upper section of screen |
+| Start / Retry | Space / Enter | Tap anywhere on screen |
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## Technical Stack
 
-- **Game Engine:** [Phaser 3.16](https://phaser.io/) (Arcade Physics, Scene Manager, Emitters)
-- **Language:** [TypeScript](https://www.typescriptlang.org/) (Strictly typed game logic across 29 modules)
-- **Bundler:** [Webpack 5](https://webpack.js.org/) (Hashed production bundles, production minification)
-- **Level Design:** [Tiled Map Editor](https://www.mapeditor.org/) (Extruded 16x16 tilemap layers & object placement)
-- **Web Server & Hosting:** Apache2 + Cloudflare Tunnel (HTTPS cloud delivery with cache-revalidation headers)
-- **Testing:** Playwright Headless Automation (10/10 feature regression test suite)
+- **Game Engine:** Phaser 3.16 (Arcade Physics, Scene Manager, Particle Emitters)
+- **Language:** TypeScript (strict mode across 29 source files)
+- **Bundler:** Webpack 5 (production minification and bundle splitting)
+- **Level Design:** Tiled Map Editor (16x16 tilemap layers exported to JSON)
+- **Hosting & Deployment:** Apache2 + Cloudflare Tunnel (HTTPS delivery)
+- **Automated QA:** Playwright headless browser test scripts
 
 ---
 
-## 📁 Repository Structure
+## Repository Layout
 
 ```text
 CMM20103202607001/
-├── docs/                      # Documentation artifacts & PRD specifications
+├── docs/                      # PRD specifications and planning notes
 ├── src/
 │   ├── assets/                # Audio, fonts, icons, sprites, and tilemaps
-│   ├── components/            # Reusable UI & map components (Hud, Dialog, Sfx, Chest)
-│   ├── entities/              # Physics entities (Player, Enemy, Coin)
-│   ├── scenes/                # Phaser scenes (TitleScene, MainScene, GameOverScene, WinScene)
-│   ├── utils/                 # Input helpers, touch detectors, and device utilities
-│   ├── favicon.ico            # Pixel-art heart favicon
-│   ├── game.ts                # Application entry point & Phaser configuration
-│   └── index.ejs              # Main HTML template with anti-cache & PWA headers
-├── webpack/                   # Webpack development and production configs
-├── package.json               # Project dependencies & npm scripts
+│   ├── components/            # UI, Map, HUD, SFX, and Chest modules
+│   ├── entities/              # Player, Enemy, and Coin physics entities
+│   ├── scenes/                # TitleScene, MainScene, GameOverScene, WinScene
+│   ├── utils/                 # Touch checks and input helpers
+│   ├── favicon.ico            # Heart icon favicon
+│   ├── game.ts                # Phaser game entry point and config
+│   └── index.ejs              # Main HTML template
+├── webpack/                   # Webpack build configurations
+├── package.json               # Dependencies and scripts
 └── README.md                  # Project documentation
 ```
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Clone the repository
 ```bash
@@ -109,25 +99,25 @@ npm install
 ```bash
 npm start
 ```
-Open your browser and navigate to `http://localhost:8080`.
+Open `http://localhost:8080` in your browser.
 
 ### 4. Build for Production
 ```bash
 npm run build
 ```
-The optimized production bundle will be generated under the `dist/` directory.
+The production bundle will be generated in the `dist/` directory.
 
 ---
 
-## 🎓 Academic Information
+## Academic Information
 
-- **Course:** Multimedia Application
-- **Course Code:** CMM21103
-- **Degree Program:** Bachelor / Diploma in Multimedia
-- **Institution:** Management & Science University (MSU)
-- **Semester:** July 2026
-- **Lecturers:** Izzul Iman Bin Suhairi & Muhammad Rohaizad Bin Zainun
-
----
-
-*Developed for the Final Project requirement in CMM21103.*
+Subject Code : CMM20103
+Subject Name : MULTIMEDIA TECHNOLOGY
+Class Id : CMM20103202607001
+Group Id : 
+01202607000326
+01202607000327
+Programe: Bachelor Computer Science
+Lecturer:
+Mr. Izzul Iman Bin Suhairi
+Mr. Muhammad Rohaizad Bin Zainun
