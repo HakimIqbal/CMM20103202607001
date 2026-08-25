@@ -50,41 +50,199 @@ export class TitleScene extends LevelScene {
 			.setOrigin(1, 1)
 			.setDepth(100);
 
+		// ---- Layout Tuning: Clear Separation between Logo, Hero Art, and Prompts ----
+		// 1. Logo at top (0.16h & 0.28h)
 		this.add
-			.text(cx, h * 0.22, 'PIXEL', {
+			.text(cx, h * 0.16, 'PIXEL', {
 				fontFamily: 'Arcade',
-				fontSize: `${Math.round(w / 9)}px`,
+				fontSize: `${Math.round(w / 11)}px`,
 				color: '#ffffff',
 				stroke: '#2b3f8e',
 				strokeThickness: Math.round(w / 160)
 			})
 			.setOrigin(0.5)
-			.setDepth(10);
+			.setDepth(20);
 
 		this.add
-			.text(cx, h * 0.37, 'QUEST', {
+			.text(cx, h * 0.28, 'QUEST', {
 				fontFamily: 'Arcade',
-				fontSize: `${Math.round(w / 22)}px`,
+				fontSize: `${Math.round(w / 24)}px`,
 				color: '#ffe98a',
 				stroke: '#2b3f8e',
 				strokeThickness: Math.round(w / 220)
 			})
 			.setOrigin(0.5)
-			.setDepth(10);
+			.setDepth(20);
 
+		// Ground line for scene showcase
+		const groundY = h * 0.72;
+
+		// 1. Ara (Hero) - Left side, idle
+		const araSprite = this.add.sprite(cx - w * 0.22, groundY, 'ara').setOrigin(0.5, 1);
+		const araScale = Math.max(1.8, w / 450);
+		araSprite.setScale(araScale).setDepth(15);
+		araSprite.setFrame(0);
+
+		// 2. Love Chest - Far Right
+		const chestSprite = this.add.sprite(cx + w * 0.24, groundY, 'loveChest').setOrigin(0.5, 1);
+		const chestScale = Math.max(1.5, w / 550);
+		chestSprite.setScale(chestScale).setDepth(15);
+
+		// 3. Animated Hop + Split Showcase for Slime (Tuing-Tuing & Split Loop)
+		const slimeScale = Math.max(2.2, w / 380);
+		if (!this.anims.exists('slime_walk')) {
+			this.anims.create({
+				key: 'slime_walk',
+				frameRate: 6,
+				frames: this.anims.generateFrameNumbers('slime', { start: 0, end: 3 }),
+				repeat: -1
+			});
+		}
+
+		const runSlimeCycle = () => {
+			const startX = cx - w * 0.05;
+			const bigSlime = this.add.sprite(startX, groundY, 'slime').setOrigin(0.5, 1);
+			bigSlime.setScale(slimeScale).setDepth(16);
+			bigSlime.play('slime_walk');
+
+			// Hop 1 (Tuing!)
+			this.tweens.add({
+				targets: bigSlime,
+				x: startX + 50,
+				y: groundY - 45,
+				scaleX: slimeScale * 0.8,
+				scaleY: slimeScale * 1.3,
+				duration: 350,
+				ease: 'Quad.easeOut',
+				yoyo: true,
+				onYoyo: () => {
+					this.tweens.add({
+						targets: bigSlime,
+						scaleX: slimeScale * 1.25,
+						scaleY: slimeScale * 0.75,
+						duration: 150,
+						yoyo: true
+					});
+				},
+				onComplete: () => {
+					// Hop 2 (Tuing!)
+					this.tweens.add({
+						targets: bigSlime,
+						x: startX + 110,
+						y: groundY - 50,
+						scaleX: slimeScale * 0.8,
+						scaleY: slimeScale * 1.3,
+						duration: 350,
+						ease: 'Quad.easeOut',
+						yoyo: true,
+						onYoyo: () => {
+							this.tweens.add({
+								targets: bigSlime,
+								scaleX: slimeScale * 1.25,
+								scaleY: slimeScale * 0.75,
+								duration: 150,
+								yoyo: true
+							});
+						},
+						onComplete: () => {
+							// Stomp / Squish before POP
+							this.tweens.add({
+								targets: bigSlime,
+								scaleY: slimeScale * 0.4,
+								scaleX: slimeScale * 1.5,
+								duration: 200,
+								onComplete: () => {
+									// POP effect (Burst into 3 minis!)
+									const popX = bigSlime.x;
+									const popY = groundY;
+									bigSlime.destroy();
+
+									const miniScale = slimeScale * 0.6;
+									const minis: Phaser.GameObjects.Sprite[] = [];
+									const offsets = [-45, 0, 45];
+
+									offsets.forEach((dx) => {
+										const m = this.add.sprite(popX, popY, 'slime').setOrigin(0.5, 1);
+										m.setScale(miniScale).setDepth(16);
+										m.play('slime_walk');
+										minis.push(m);
+
+										// Scatter hop
+										this.tweens.add({
+											targets: m,
+											x: popX + dx * 1.4,
+											y: groundY - 35,
+											duration: 300,
+											yoyo: true,
+											ease: 'Quad.easeOut',
+											onComplete: () => {
+												// hop once more
+												this.tweens.add({
+													targets: m,
+													x: m.x + (dx !== 0 ? Math.sign(dx) * 25 : 0),
+													y: groundY - 20,
+													duration: 250,
+													yoyo: true,
+													ease: 'Quad.easeOut'
+												});
+											}
+										});
+									});
+
+									// Fade out minis and restart cycle
+									this.time.delayedCall(1600, () => {
+										minis.forEach((m) => {
+											this.tweens.add({
+												targets: m,
+												alpha: 0,
+												duration: 300,
+												onComplete: () => m.destroy()
+											});
+										});
+										this.time.delayedCall(500, runSlimeCycle, [], this);
+									}, [], this);
+								}
+							});
+						}
+					});
+				}
+			});
+		};
+
+		runSlimeCycle();
+
+		// Floating Decorative Hearts above
+		const heart1 = this.add.image(cx - w * 0.28, h * 0.32, 'heart').setScale(2.5).setDepth(4);
+		const heart2 = this.add.image(cx + w * 0.30, h * 0.35, 'heart').setScale(2.2).setDepth(4);
+		const heart3 = this.add.image(cx, h * 0.38, 'heart').setScale(1.8).setDepth(4);
+
+		[heart1, heart2, heart3].forEach((hImg, idx) => {
+			this.tweens.add({
+				targets: hImg,
+				y: `+=${10 + idx * 4}`,
+				duration: 1400 + idx * 300,
+				yoyo: true,
+				repeat: -1,
+				ease: 'Sine.easeInOut'
+			});
+		});
+
+		// Prompts positioned cleanly below the showcase area
 		const prompt = this.add
 			.text(
 				cx,
-				h * 0.6,
+				h * 0.84,
 				isTouchDevice ? 'TAP TO START' : 'PRESS SPACE TO START',
 				{
 					fontFamily: 'Arcade',
-					fontSize: `${Math.round(w / 40)}px`,
-					color: '#ffffff'
+					fontSize: `${Math.round(w / 36)}px`,
+					color: '#ffffff',
+					stroke: '#2b3f8e',
+					strokeThickness: 3
 				}
 			)
 			.setOrigin(0.5)
-			.setDepth(10);
+			.setDepth(25);
 
 		this.tweens.add({
 			targets: prompt,
@@ -94,78 +252,22 @@ export class TitleScene extends LevelScene {
 			repeat: -1
 		});
 
-		// ---- Decorative Cast Layout (Animated & High Quality) ----
-		const groundY = h * 0.82;
-
-		// 1. Ara (Hero) - Left-Center standing
-		const araSprite = this.add.sprite(cx - w * 0.18, groundY, 'ara').setOrigin(0.5, 1);
-		const araScale = Math.max(1.8, w / 450);
-		araSprite.setScale(araScale).setDepth(6);
-		// Play idle animation (frame 0)
-		araSprite.setFrame(0);
-
-		// 2. Love Chest - Right side
-		const chestSprite = this.add.sprite(cx + w * 0.22, groundY, 'loveChest').setOrigin(0.5, 1);
-		const chestScale = Math.max(1.5, w / 550);
-		chestSprite.setScale(chestScale).setDepth(6);
-
-		// 3. Slime Enemy - Patrolling between Ara and Chest
-		const slimeSprite = this.add.sprite(cx + w * 0.05, groundY, 'slime').setOrigin(0.5, 1);
-		const slimeScale = Math.max(2.0, w / 400);
-		slimeSprite.setScale(slimeScale).setDepth(6);
-		if (!this.anims.exists('slime_walk')) {
-			this.anims.create({
-				key: 'slime_walk',
-				frameRate: 6,
-				frames: this.anims.generateFrameNumbers('slime', { start: 0, end: 3 }),
-				repeat: -1
-			});
-		}
-		slimeSprite.play('slime_walk');
-
-		// Gentle patrol animation for Slime (walks back and forth)
-		this.tweens.add({
-			targets: slimeSprite,
-			x: cx + w * 0.12,
-			duration: 2000,
-			yoyo: true,
-			repeat: -1,
-			ease: 'Sine.easeInOut',
-			onYoyo: () => slimeSprite.setFlipX(true),
-			onRepeat: () => slimeSprite.setFlipX(false)
-		});
-
-		// 4. Floating Decorative Hearts & Coins above the scene
-		const heart1 = this.add.image(cx - w * 0.25, h * 0.35, 'heart').setScale(2.5).setDepth(4);
-		const heart2 = this.add.image(cx + w * 0.28, h * 0.38, 'heart').setScale(2.2).setDepth(4);
-		const heart3 = this.add.image(cx + w * 0.12, h * 0.28, 'heart').setScale(1.8).setDepth(4);
-
-		[heart1, heart2, heart3].forEach((hImg, idx) => {
-			this.tweens.add({
-				targets: hImg,
-				y: `+=${12 + idx * 4}`,
-				duration: 1400 + idx * 300,
-				yoyo: true,
-				repeat: -1,
-				ease: 'Sine.easeInOut'
-			});
-		});
-
 		this.add
 			.text(
 				cx,
-				h * 0.74,
+				h * 0.92,
 				isTouchDevice
 					? 'TOUCH LEFT/RIGHT TO MOVE - TOP TO JUMP'
 					: 'ARROWS MOVE - SPACE/UP JUMP',
 				{
 					fontFamily: 'Arcade',
-					fontSize: `${Math.round(w / 58)}px`,
+					fontSize: `${Math.round(w / 60)}px`,
 					color: '#dbe6ff'
 				}
 			)
 			.setOrigin(0.5)
-			.setDepth(10);
+			.setDepth(25);
+
 
 		const start = () => {
 			if (this.started) return;
