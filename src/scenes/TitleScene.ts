@@ -12,6 +12,13 @@ export class TitleScene extends LevelScene {
 		super({ key: 'TitleScene' });
 	}
 
+	public preload() {
+		super.preload();
+		// Title cast strip: real game characters composed into one PNG by
+		// tools/make_title_cast.py (Ara poses + hearts + slime + chest).
+		this.load.image('titleCast', 'assets/ui/title-cast.png?v=24090');
+	}
+
 	public create() {
 		super.create();
 		this.cameras.main.setBackgroundColor('#448AFF');
@@ -74,6 +81,28 @@ export class TitleScene extends LevelScene {
 			yoyo: true,
 			repeat: -1
 		});
+
+		// ---- Title cast strip (fills the empty lower half) ----------
+		// Real characters from the game, anchored to an implied ground line
+		// at ~78% height so they read as "standing" under the logo.
+		if (this.textures.exists('titleCast')) {
+			const cast = this.add.image(cx, 0, 'titleCast');
+			const maxW = w * 0.62;
+			const castScale = Math.min(maxW / cast.width, 1.4);
+			cast.setScale(castScale);
+			const groundY = h * 0.8;
+			cast.setPosition(cx + w * 0.055, groundY - (cast.height * castScale) / 2);
+			cast.setDepth(5);
+			// gentle idle float on the whole cast (alive, not static)
+			this.tweens.add({
+				targets: cast,
+				y: '+=10',
+				duration: 1600,
+				yoyo: true,
+				repeat: -1,
+				ease: 'Sine.easeInOut'
+			});
+		}
 
 		this.add
 			.text(
