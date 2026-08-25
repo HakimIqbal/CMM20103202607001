@@ -111,13 +111,11 @@ The production bundle will be generated in the `dist/` directory.
 
 ## Academic Information
 
-Subject Code : CMM20103  
-Subject Name : MULTIMEDIA TECHNOLOGY  
-Class Id : CMM20103202607001  
-Group Id :  
-01202607000326  
-01202607000327  
-Programe: Bachelor Computer Science  
-Lecturer:  
-Mr. Izzul Iman Bin Suhairi  
-Mr. Muhammad Rohaizad Bin Zainun  
+| Field | Details |
+| :--- | :--- |
+| **Subject Code** | CMM20103 |
+| **Subject Name** | MULTIMEDIA TECHNOLOGY |
+| **Class ID** | CMM20103202607001 |
+| **Group ID** | 01202607000326<br>01202607000327 |
+| **Programme** | Bachelor Computer Science |
+| **Lecturer** | Mr. Izzul Iman Bin Suhairi<br>Mr. Muhammad Rohaizad Bin Zainun |
