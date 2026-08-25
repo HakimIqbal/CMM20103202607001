@@ -243,12 +243,37 @@ export class Enemy {
 	 * Returns 'stomp' if the player hit from above (enemy dies), else 'hurt'.
 	 * When a BIG slime is stomped it splits: this.splitInto(3) is invoked by
 	 * the scene so the new minis join the live enemy list.
+	 *
+	 * FAIRNESS RULES (two acceptance paths):
+	 * 1. classic: feet were ABOVE the head line last frame (+18px grace —
+	 *    at gravity 1850 a fast fall moves 13-16px/frame, so an 8px window
+	 *    misjudged real head-stomps as clips).
+	 * 2. fast-fall catch: player is FALLING and their feet are still in
+	 *    the TOP HALF of the slime body. A side walk-in lands feet near
+	 *    ground level = bottom half => stays 'hurt'. Rising into the chin
+	 *    fails both (not falling) => 'hurt'.
 	 */
-	public interact(playerBottom: number, playerPrevBottom: number): 'stomp' | 'hurt' {
+	public interact(
+		playerBottom: number,
+		playerPrevBottom: number,
+		playerVy: number = 0
+	): 'stomp' | 'hurt' {
 		if (this.dead) return 'hurt';
+		const top = this.sprite.body.top;
+		const centerY = this.sprite.body.center.y;
+		// head line as of LAST frame: if the slime itself rose (hop/chase
+		// bounce), comparing feet against the CURRENT top punishes the
+		// player for movement they can't see coming — judge against where
+		// the head was when the overlap began.
+		const prevTop =
+			this.prevBodyTop !== null && this.prevBodyTop < top
+				? this.prevBodyTop
+				: top;
+		this.prevBodyTop = top;
 		const stomped =
-			playerPrevBottom <= this.sprite.body.top + 8 &&
-			playerBottom >= this.sprite.body.top;
+			playerBottom >= top &&
+			(playerPrevBottom <= prevTop + 18 ||
+				(playerVy > 0 && playerBottom <= centerY));
 		if (stomped) {
 			if (this.onStomped) this.onStomped(this);
 			this.kill();
@@ -269,6 +294,8 @@ export class Enemy {
 	}
 
 	private mini: boolean = false;
+	/** head line last time interact() ran — fairness reference for rising slimes */
+	private prevBodyTop: number | null = null;
 
 	/** mark as mini: smaller sprite, faster, chases the player relentlessly */
 	public makeMini(scale: number): void {

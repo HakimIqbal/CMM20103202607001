@@ -277,10 +277,16 @@ export class MainScene extends LevelScene {
 	private enemyHasGroundAt?: (x: number, y: number) => boolean;
 
 	private handleEnemyTouch(enemy: Enemy) {
-		if (enemy.isDead || this.time.now < this.invincibleUntil) return;
+		if (enemy.isDead) return;
+		// Evaluate stomp ALWAYS — even during i-frames. The old early-return
+		// meant a legit head-stomp landing during invincibility never
+		// registered; when the i-window expired mid-overlap the (now deep,
+		// degraded) geometry read as 'hurt' => "I stomped its head and STILL
+		// lost a heart". I-frames must shield from damage, not steal credits.
 		const result = enemy.interact(
 			this.player.sprite.body.bottom,
-			this.playerPrevBottom
+			this.playerPrevBottom,
+			this.player.sprite.body.velocity.y
 		);
 		if (result === 'stomp') {
 			this.score += 50;
@@ -288,7 +294,7 @@ export class MainScene extends LevelScene {
 			this.sfx.play('sfx_stomp');
 			// bounce player off the squashed slime
 			this.player.sprite.setVelocityY(-450);
-		} else {
+		} else if (this.time.now >= this.invincibleUntil) {
 			this.loseHeart();
 		}
 	}
