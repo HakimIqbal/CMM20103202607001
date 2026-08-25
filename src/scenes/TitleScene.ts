@@ -14,9 +14,21 @@ export class TitleScene extends LevelScene {
 
 	public preload() {
 		super.preload();
-		// Title cast strip: real game characters composed into one PNG by
-		// tools/make_title_cast.py (Ara poses + hearts + slime + chest).
-		this.load.image('titleCast', 'assets/ui/title-cast.png?v=24090');
+		// Preload assets for title cast decoration
+		this.load.spritesheet('slime', 'assets/sprites/slime.png?v=24089', {
+			frameWidth: 32,
+			frameHeight: 24
+		});
+		this.load.spritesheet('loveChest', 'assets/sprites/love_chest.png?v=24089', {
+			frameWidth: 64,
+			frameHeight: 64
+		});
+		this.load.spritesheet('ara', 'assets/sprites/ara.png?v=24089', {
+			frameHeight: 102,
+			frameWidth: 77,
+			margin: 1,
+			spacing: 2
+		});
 	}
 
 	public create() {
@@ -82,27 +94,62 @@ export class TitleScene extends LevelScene {
 			repeat: -1
 		});
 
-		// ---- Title cast strip (fills the empty lower half) ----------
-		// Real characters from the game, anchored to an implied ground line
-		// at ~78% height so they read as "standing" under the logo.
-		if (this.textures.exists('titleCast')) {
-			const cast = this.add.image(cx, 0, 'titleCast');
-			const maxW = w * 0.62;
-			const castScale = Math.min(maxW / cast.width, 1.4);
-			cast.setScale(castScale);
-			const groundY = h * 0.8;
-			cast.setPosition(cx + w * 0.055, groundY - (cast.height * castScale) / 2);
-			cast.setDepth(5);
-			// gentle idle float on the whole cast (alive, not static)
+		// ---- Decorative Cast Layout (Animated & High Quality) ----
+		const groundY = h * 0.82;
+
+		// 1. Ara (Hero) - Left-Center standing
+		const araSprite = this.add.sprite(cx - w * 0.18, groundY, 'ara').setOrigin(0.5, 1);
+		const araScale = Math.max(1.8, w / 450);
+		araSprite.setScale(araScale).setDepth(6);
+		// Play idle animation (frame 0)
+		araSprite.setFrame(0);
+
+		// 2. Love Chest - Right side
+		const chestSprite = this.add.sprite(cx + w * 0.22, groundY, 'loveChest').setOrigin(0.5, 1);
+		const chestScale = Math.max(1.5, w / 550);
+		chestSprite.setScale(chestScale).setDepth(6);
+
+		// 3. Slime Enemy - Patrolling between Ara and Chest
+		const slimeSprite = this.add.sprite(cx + w * 0.05, groundY, 'slime').setOrigin(0.5, 1);
+		const slimeScale = Math.max(2.0, w / 400);
+		slimeSprite.setScale(slimeScale).setDepth(6);
+		if (!this.anims.exists('slime_walk')) {
+			this.anims.create({
+				key: 'slime_walk',
+				frameRate: 6,
+				frames: this.anims.generateFrameNumbers('slime', { start: 0, end: 3 }),
+				repeat: -1
+			});
+		}
+		slimeSprite.play('slime_walk');
+
+		// Gentle patrol animation for Slime (walks back and forth)
+		this.tweens.add({
+			targets: slimeSprite,
+			x: cx + w * 0.12,
+			duration: 2000,
+			yoyo: true,
+			repeat: -1,
+			ease: 'Sine.easeInOut',
+			onYoyo: () => slimeSprite.setFlipX(true),
+			onRepeat: () => slimeSprite.setFlipX(false)
+		});
+
+		// 4. Floating Decorative Hearts & Coins above the scene
+		const heart1 = this.add.image(cx - w * 0.25, h * 0.35, 'heart').setScale(2.5).setDepth(4);
+		const heart2 = this.add.image(cx + w * 0.28, h * 0.38, 'heart').setScale(2.2).setDepth(4);
+		const heart3 = this.add.image(cx + w * 0.12, h * 0.28, 'heart').setScale(1.8).setDepth(4);
+
+		[heart1, heart2, heart3].forEach((hImg, idx) => {
 			this.tweens.add({
-				targets: cast,
-				y: '+=10',
-				duration: 1600,
+				targets: hImg,
+				y: `+=${12 + idx * 4}`,
+				duration: 1400 + idx * 300,
 				yoyo: true,
 				repeat: -1,
 				ease: 'Sine.easeInOut'
 			});
-		}
+		});
 
 		this.add
 			.text(
