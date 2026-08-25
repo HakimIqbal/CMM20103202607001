@@ -24,6 +24,10 @@ export class MainScene extends LevelScene {
 	private heartIcons: Phaser.GameObjects.Image[] = [];
 	private sfx!: Sfx;
 	private chest!: LoveChest;
+	private chestX: number = 0;
+	private chestRow: number = 25;
+	private chestZone!: Phaser.GameObjects.Zone;
+	private dbgText?: Phaser.GameObjects.Text;
 	private level: number = 1;
 	private finishing: boolean = false;
 	private musicPlaylist: MusicPlaylist;
@@ -105,6 +109,9 @@ export class MainScene extends LevelScene {
 		// the chest top. Walking into it does nothing.
 		const zone = this.add.zone(x, y - 20 * scale, 120 * scale, 60 * scale);
 		this.physics.add.existing(zone, true);
+		this.chestX = x;
+		this.chestRow = row;
+		this.chestZone = zone;
 		this.physics.add.overlap(this.player.sprite, zone, () => {
 			if (this.finishing || this.gameOver) return;
 			const pbody = this.player.sprite.body;
@@ -115,6 +122,48 @@ export class MainScene extends LevelScene {
 			if (!landed) return;
 			void this.winLevel();
 		});
+	}
+
+	/**
+	 * Re-anchor the goal chest + its sensor to the platforms layer EVERY
+	 * frame. The layer's Y depends on the live viewport height; a resize
+	 * between scene-create and now would otherwise leave the chest at a
+	 * stale Y — the reported "chest floating far above the grass".
+	 */
+	private reanchorChest(): void {
+		if (!this.chest || !this.chest.sprite) return;
+		const scale = this.map.scalingFactor - 1;
+		const groundTopY =
+			this.map.platforms.y + this.chestRow * 16 * this.map.scalingFactor;
+		const chestScale = scale * 0.75;
+		const y = groundTopY - (64 * chestScale) / 2 + 6 * scale;
+		this.chest.sprite.setPosition(this.chestX, y);
+		// the sensor zone + its STATIC body must follow — static bodies
+		// don't track their game object and a resize would leave them at
+		// the stale spawn position (invisible "can't open" bug).
+		if (this.chestZone) {
+			this.chestZone.setPosition(this.chestX, y - 20 * scale);
+			const zbody = this.chestZone.body as Phaser.Physics.Arcade.StaticBody;
+			if (zbody) zbody.updateFromGameObject();
+		}
+		// DEBUG (temporary): live numbers so device-side mismatches are
+		// readable straight from a screenshot.
+		if (!this.dbgText) {
+			this.dbgText = this.add
+				.text(10, 10, '', {
+					fontFamily: 'monospace',
+					fontSize: '14px',
+					color: '#00ff00',
+					stroke: '#000000',
+					strokeThickness: 3
+				})
+				.setDepth(300)
+				.setScrollFactor(0);
+		}
+		this.dbgText.setText(
+			`h=${Math.round(this.scale.height)} layY=${Math.round(this.map.platforms.y)} ` +
+			`groundTop=${Math.round(groundTopY)} chestY=${Math.round(y)}`
+		);
 	}
 
 	private async winLevel() {
@@ -324,6 +373,7 @@ export class MainScene extends LevelScene {
 		this.map.update();
 		this.player.update();
 		if (this.chest) this.chest.update();
+		this.reanchorChest();
 		this.playerPrevBottom = this.player.sprite.body.bottom;
 		// facing = last direction the character looked (flipX persists while standing)
 		this.enemies.forEach(e => {
