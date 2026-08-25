@@ -37,7 +37,7 @@ export class Player {
 	public preload(): void {
 		this.scene.load.spritesheet(
 			this.spriteKey,
-			`assets/sprites/${this.spriteKey}.png`,
+			`assets/sprites/${this.spriteKey}.png?v=24089`,
 			{
 				frameHeight: 102,
 				frameWidth: 77,

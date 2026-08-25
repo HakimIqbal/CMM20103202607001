@@ -15,7 +15,7 @@ export abstract class LevelScene extends Phaser.Scene {
 	}
 
 	public preload() {
-		this.load.image('heart', 'assets/sprites/heart.png');
+		this.load.image('heart', 'assets/sprites/heart.png?v=24089');
 	}
 
 	public create() {

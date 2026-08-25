@@ -34,7 +34,7 @@ const game = new Phaser.Game(config);
 
 // Build marker: lets the operator verify which bundle a client actually
 // loaded (check browser console).
-console.log('[PixelQuest] build 2408-32 · debug overlay');
+console.log('[PixelQuest] build 2408-33 · all sprites cache-busted');
 
 // Debug handle for automated testing / headless verification.
 if (typeof window !== 'undefined') {

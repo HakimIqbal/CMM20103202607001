@@ -22,7 +22,7 @@ export class Enemy {
 	}
 
 	public preload(): void {
-		this.scene.load.spritesheet('slime', 'assets/sprites/slime.png', {
+		this.scene.load.spritesheet('slime', 'assets/sprites/slime.png?v=24089', {
 			frameWidth: 32,
 			frameHeight: 24
 		});

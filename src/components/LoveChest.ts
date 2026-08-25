@@ -14,7 +14,7 @@ export class LoveChest {
 	}
 
 	public preload() {
-		this.scene.load.spritesheet('loveChest', 'assets/sprites/love_chest.png', {
+		this.scene.load.spritesheet('loveChest', 'assets/sprites/love_chest.png?v=24089', {
 			frameWidth: 64,
 			frameHeight: 64
 		});

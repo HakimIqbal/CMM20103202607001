@@ -17,7 +17,7 @@ export class Coin {
 	}
 
 	public preload(): void {
-		this.scene.load.spritesheet('coin', 'assets/sprites/coin_v2.png', {
+		this.scene.load.spritesheet('coin', 'assets/sprites/coin_v2.png?v=24089', {
 			frameWidth: 24,
 			frameHeight: 24
 		});
