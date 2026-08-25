@@ -36,8 +36,20 @@ export class MainScene extends LevelScene {
 	}
 
 	public init(data: { level?: number; score?: number }) {
-		if (data && data.level) this.level = data.level;
-		if (data && data.score) this.score = data.score;
+		// Phaser REUSES the scene instance across scene.start() — class-field
+		// initializers run ONLY once per page load. Every mutable field must
+		// be reset here, or a retry inherits the previous run's state:
+		// lives stayed 0 (empty hearts but controllable), gameOver stayed
+		// true (pit falls stuck forever, chest overlap dead).
+		this.level = data && data.level ? data.level : 1;
+		this.score = data && data.score != null ? data.score : 0;
+		this.lives = 3;
+		this.gameOver = false;
+		this.finishing = false;
+		this.invincibleUntil = 0;
+		this.playerPrevBottom = 0;
+		this.coins = [];
+		this.enemies = [];
 
 		this.dialog = new Dialog();
 		this.player = new Player({ scene: this });
