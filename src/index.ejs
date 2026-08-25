@@ -316,11 +316,18 @@
 
 		<% if(htmlWebpackPlugin.options.options.env === 'production'){ %>
 		<script>
-			// Check that service workers are registered
+			// KILL any legacy service worker and purge its caches — stale
+			// SWs were serving old bundles to returning players.
 			if ('serviceWorker' in navigator) {
-				// Use the window load event to keep the page load performant
 				window.addEventListener('load', () => {
-					navigator.serviceWorker.register('./sw.js');
+					navigator.serviceWorker.getRegistrations().then(regs => {
+						regs.forEach(r => r.unregister());
+					});
+					if (window.caches && caches.keys) {
+						caches.keys().then(names =>
+							names.forEach(n => caches.delete(n))
+						);
+					}
 				});
 			}
 		</script>
