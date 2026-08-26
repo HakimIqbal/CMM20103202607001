@@ -71,39 +71,9 @@ Promise.race([
 	requestAnimationFrame(() => startGame());
 });
 
-/**
- * Mobile viewport fix: set parent element height via JS to avoid
- * CSS viewport unit (100vh/100dvh) differences across browsers.
- * Brave, Mi Browser, Chrome, Safari all report different innerHeight
- * with CSS units. Direct pixel sizing via JS is the only reliable way.
- */
-const _w: any = window;
-function refreshGameSize() {
-	const parent = document.getElementById('game');
-	if (!parent) return;
-	let vh: number;
-	if (_w.visualViewport) {
-		vh = _w.visualViewport.height;
-	} else {
-		vh = window.innerHeight;
-	}
-	parent.style.width = window.innerWidth + 'px';
-	parent.style.height = vh + 'px';
-	// Only refresh scale after game is fully booted
-	try {
-		if (game.scale) {
-			game.scale.refresh();
-		}
-	} catch (e) {
-		// ScaleManager not ready yet — skip
-	}
-}
-
-// Listen to all possible resize events (only after game boots)
-window.addEventListener('resize', refreshGameSize);
-window.addEventListener('orientationchange', () => setTimeout(refreshGameSize, 200));
-if (_w.visualViewport) {
-	_w.visualViewport.addEventListener('resize', refreshGameSize);
-	_w.visualViewport.addEventListener('scroll', refreshGameSize);
-}
-window.addEventListener('load', refreshGameSize);
+// Clean scale management handles responsive resize natively via Phaser Scale.FIT
+window.addEventListener('orientationchange', () => {
+	setTimeout(() => {
+		if (game.scale) game.scale.refresh();
+	}, 200);
+});
