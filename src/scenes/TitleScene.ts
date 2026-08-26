@@ -41,26 +41,31 @@ export class TitleScene extends LevelScene {
 
 
 
-		// ---- Layout Tuning: Clear Separation between Logo, Hero Art, and Prompts ----
-		// 1. Logo at top (0.16h & 0.28h)
-		this.add
-			.text(cx, h * 0.16, 'PIXEL', {
-				fontFamily: 'Arcade',
-				fontSize: `${Math.round(w / 11)}px`,
-				color: '#ffffff',
-				stroke: '#2b3f8e',
-				strokeThickness: Math.round(w / 160)
-			})
-			.setOrigin(0.5)
-			.setDepth(20);
+		// ---- Responsive Scaling & Layout for Mobile Portrait vs Desktop ----
+		const isPortrait = isTouchDevice && h > w;
+		
+		// 1. Logo at top (0.16h & 0.28h on landscape, centered & enlarged on portrait)
+		const logoY1 = isPortrait ? h * 0.20 : h * 0.16;
+		const logoY2 = isPortrait ? h * 0.32 : h * 0.28;
+		const fontScale = isPortrait ? 1.5 : 1.0;
 
 		this.add
-			.text(cx, h * 0.28, 'QUEST', {
+			.text(cx, logoY1, 'PIXEL', {
 				fontFamily: 'Arcade',
-				fontSize: `${Math.round(w / 24)}px`,
+				fontSize: `${Math.round((w / 9) * fontScale)}px`,
+				color: '#ffffff',
+				stroke: '#2b3f8e',
+				strokeThickness: Math.round((w / 160) * fontScale)
+			})
+			.setOrigin(0.5);
+
+		this.add
+			.text(cx, logoY2, 'QUEST', {
+				fontFamily: 'Arcade',
+				fontSize: `${Math.round((w / 10) * fontScale)}px`,
 				color: '#ffe98a',
 				stroke: '#2b3f8e',
-				strokeThickness: Math.round(w / 220)
+				strokeThickness: Math.round((w / 160) * fontScale)
 			})
 			.setOrigin(0.5)
 			.setDepth(20);
@@ -218,18 +223,22 @@ export class TitleScene extends LevelScene {
 			});
 		});
 
-		// Prompts positioned cleanly below the showcase area
+		// Prompts positioned cleanly below the showcase area (scaled for mobile portrait readability)
+		const promptY = isPortrait ? h * 0.52 : h * 0.84;
+		const promptText = isTouchDevice ? 'TAP TO START' : 'PRESS SPACE TO START';
+		const promptFontSize = isPortrait ? `${Math.round(w / 14)}px` : `${Math.round(w / 36)}px`;
+
 		const prompt = this.add
 			.text(
 				cx,
-				h * 0.84,
-				isTouchDevice ? 'TAP TO START' : 'PRESS SPACE TO START',
+				promptY,
+				promptText,
 				{
 					fontFamily: 'Arcade',
-					fontSize: `${Math.round(w / 36)}px`,
-					color: '#ffffff',
+					fontSize: promptFontSize,
+					color: '#ffe98a',
 					stroke: '#2b3f8e',
-					strokeThickness: 3
+					strokeThickness: isPortrait ? 5 : 3
 				}
 			)
 			.setOrigin(0.5)
