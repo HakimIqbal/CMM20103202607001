@@ -17,9 +17,11 @@ const config: GameConfig = {
 		default: 'arcade'
 	},
 	scale: {
-		autoCenter: Phaser.Scale.NO_CENTER,
-		autoRound: true,
-		mode: Phaser.Scale.RESIZE
+		mode: Phaser.Scale.ENVELOP,
+		autoCenter: Phaser.Scale.CENTER_BOTH,
+		width: 1280,
+		height: 720,
+		autoRound: true
 	},
 	scene: [],
 	render: {
