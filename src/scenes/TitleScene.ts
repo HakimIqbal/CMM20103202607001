@@ -262,9 +262,65 @@ export class TitleScene extends LevelScene {
 
 		const start = () => {
 			if (this.started) return;
+
+			// Handle mobile auto-landscape & fullscreen on "TAP TO START"
+			if (isTouchDevice) {
+				// Request fullscreen
+				try {
+					if (document.documentElement.requestFullscreen) {
+						document.documentElement.requestFullscreen().catch(() => {});
+					}
+				} catch (e) {}
+
+				// Try locking screen orientation to landscape (works seamlessly on Android Chrome)
+				if (screen.orientation && (screen.orientation as any).lock) {
+					(screen.orientation as any).lock('landscape')
+						.then(() => {
+							// Android successfully locked to landscape! Start scene directly.
+							proceedToGame();
+						})
+						.catch(() => {
+							// Failed to lock (e.g. iOS Safari) -> evaluate viewport orientation
+							evaluateOrientationAndProceed();
+						});
+				} else {
+					// screen.orientation API not supported -> fallback
+					evaluateOrientationAndProceed();
+				}
+			} else {
+				// Desktop: proceed immediately
+				proceedToGame();
+			}
+		};
+
+		const evaluateOrientationAndProceed = () => {
+			const isPortrait = window.innerHeight > window.innerWidth;
+			if (isPortrait) {
+				// Show iOS/Safari instruction overlay
+				const overlay = document.getElementById('orientation-overlay');
+				if (overlay) {
+					overlay.style.display = 'block';
+					const handleResize = () => {
+						if (window.innerWidth > window.innerHeight) {
+							// User rotated to landscape! Hide overlay & start game
+							overlay.style.display = 'none';
+							window.removeEventListener('resize', handleResize);
+							proceedToGame();
+						}
+					};
+					window.addEventListener('resize', handleResize);
+				}
+			} else {
+				// Already landscape: proceed directly
+				proceedToGame();
+			}
+		};
+
+		const proceedToGame = () => {
 			this.started = true;
 			this.scene.start('MainScene', { level: 1 });
 		};
+
 		this.input.keyboard.once('keydown-SPACE', start);
 		this.input.keyboard.once('keydown-ENTER', start);
 		this.input.once('pointerdown', start);

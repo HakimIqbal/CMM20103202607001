@@ -227,6 +227,103 @@
 				display: none;
 			}
 
+			/* Orientation Overlay for iOS / Fallback - Styled Premium Retro Game Style */
+			#orientation-overlay {
+				display: none;
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background-color: rgba(20, 29, 56, 0.94);
+				backdrop-filter: blur(12px);
+				-webkit-backdrop-filter: blur(12px);
+				z-index: 9999;
+				box-sizing: border-box;
+			}
+
+			.orientation-container {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				text-align: center;
+				width: 85%;
+				max-width: 420px;
+				padding: 30px;
+				border: 4px dashed #ffe98a;
+				background-color: rgba(26, 43, 94, 0.85);
+				border-radius: 12px;
+				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+			}
+
+			/* CSS-drawn Pixel Phone Animation */
+			.pixel-phone {
+				width: 44px;
+				height: 80px;
+				border: 4px solid #ffffff;
+				border-radius: 6px;
+				margin: 0 auto 24px auto;
+				position: relative;
+				background-color: rgba(255, 255, 255, 0.1);
+				animation: rotate-pixel-phone 2.4s infinite ease-in-out;
+			}
+			.pixel-phone::before {
+				content: '';
+				position: absolute;
+				bottom: 6px;
+				left: 50%;
+				transform: translateX(-50%);
+				width: 8px;
+				height: 8px;
+				border-radius: 50%;
+				background-color: #ffffff;
+			}
+			.pixel-phone::after {
+				content: '';
+				position: absolute;
+				top: 6px;
+				left: 50%;
+				transform: translateX(-50%);
+				width: 12px;
+				height: 3px;
+				border-radius: 2px;
+				background-color: #ffffff;
+			}
+
+			@keyframes rotate-pixel-phone {
+				0% {
+					transform: rotate(0deg);
+				}
+				35% {
+					transform: rotate(-90deg);
+				}
+				70% {
+					transform: rotate(-90deg);
+				}
+				100% {
+					transform: rotate(0deg);
+				}
+			}
+
+			.orientation-title {
+				font-family: 'Arcade', monospace;
+				font-size: 20px;
+				color: #ffe98a;
+				letter-spacing: 2px;
+				margin: 0 0 12px 0;
+				text-shadow: 3px 3px 0px #2b3f8e;
+			}
+
+			.orientation-desc {
+				font-family: 'Arcade', monospace;
+				font-size: 11px;
+				color: #dbe6ff;
+				letter-spacing: 1px;
+				line-height: 1.6;
+				margin: 0;
+			}
+
 			@media screen and (max-width: 1367px) {
 				#dialog {
 					transform: scale(0.89) translateY(-100%);
@@ -270,6 +367,15 @@
 		<noscript>
 			Please enable javascript to continue using this application.
 		</noscript>
+
+		<!-- Orientation Overlay (Only pops up on mobile if screen orientation lock fails and device is portrait) -->
+		<div id="orientation-overlay">
+			<div class="orientation-container">
+				<div class="pixel-phone"></div>
+				<h2 class="orientation-title">ROTATE YOUR DEVICE</h2>
+				<p class="orientation-desc">Landscape mode is recommended<br>for optimal gameplay experience</p>
+			</div>
+		</div>
 
 		<div id="game"></div>
 
