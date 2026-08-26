@@ -5,6 +5,8 @@ import { TitleScene } from './scenes/TitleScene';
 import { GameOverScene } from './scenes/GameOverScene';
 import { WinScene } from './scenes/WinScene';
 
+const isInitialPortrait = typeof window !== 'undefined' && window.innerHeight > window.innerWidth;
+
 const config: GameConfig = {
 	type: Phaser.AUTO,
 	parent: 'game',
@@ -17,10 +19,10 @@ const config: GameConfig = {
 		default: 'arcade'
 	},
 	scale: {
-		mode: Phaser.Scale.ENVELOP,
+		mode: Phaser.Scale.FIT,
 		autoCenter: Phaser.Scale.CENTER_BOTH,
-		width: 1280,
-		height: 720,
+		width: isInitialPortrait ? 720 : 1280,
+		height: isInitialPortrait ? 1280 : 720,
 		autoRound: true
 	},
 	scene: [],

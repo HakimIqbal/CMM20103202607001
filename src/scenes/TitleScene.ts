@@ -42,36 +42,37 @@ export class TitleScene extends LevelScene {
 
 
 		// ---- Responsive Scaling & Layout for Mobile Portrait vs Desktop ----
-		const isPortrait = isTouchDevice && h > w;
+		const isPortrait = h > w;
 		
-		// 1. Logo at top (0.16h & 0.28h on landscape, centered & enlarged on portrait)
-		const logoY1 = isPortrait ? h * 0.20 : h * 0.16;
-		const logoY2 = isPortrait ? h * 0.32 : h * 0.28;
-		const fontScale = isPortrait ? 1.5 : 1.0;
+		// 1. Logo at top (0.15h & 0.26h on landscape, spaced evenly on portrait)
+		const logoY1 = isPortrait ? h * 0.16 : h * 0.16;
+		const logoY2 = isPortrait ? h * 0.28 : h * 0.28;
+		const fontScale = isPortrait ? 1.4 : 1.0;
 
 		this.add
 			.text(cx, logoY1, 'PIXEL', {
 				fontFamily: 'Arcade',
-				fontSize: `${Math.round((w / 9) * fontScale)}px`,
+				fontSize: `${Math.round((w / 8) * fontScale)}px`,
 				color: '#ffffff',
 				stroke: '#2b3f8e',
-				strokeThickness: Math.round((w / 160) * fontScale)
+				strokeThickness: Math.round((w / 140) * fontScale)
 			})
-			.setOrigin(0.5);
+			.setOrigin(0.5)
+			.setDepth(20);
 
 		this.add
 			.text(cx, logoY2, 'QUEST', {
 				fontFamily: 'Arcade',
-				fontSize: `${Math.round((w / 10) * fontScale)}px`,
+				fontSize: `${Math.round((w / 9) * fontScale)}px`,
 				color: '#ffe98a',
 				stroke: '#2b3f8e',
-				strokeThickness: Math.round((w / 160) * fontScale)
+				strokeThickness: Math.round((w / 140) * fontScale)
 			})
 			.setOrigin(0.5)
 			.setDepth(20);
 
 		// Ground line for scene showcase
-		const groundY = h * 0.72;
+		const groundY = isPortrait ? h * 0.58 : h * 0.72;
 
 		// 1. Ara (Hero) - Left side, idle
 		const araSprite = this.add.sprite(cx - w * 0.22, groundY, 'ara').setOrigin(0.5, 1);
@@ -224,9 +225,9 @@ export class TitleScene extends LevelScene {
 		});
 
 		// Prompts positioned cleanly below the showcase area (scaled for mobile portrait readability)
-		const promptY = isPortrait ? h * 0.52 : h * 0.84;
+		const promptY = isPortrait ? h * 0.78 : h * 0.84;
 		const promptText = isTouchDevice ? 'TAP TO START' : 'PRESS SPACE TO START';
-		const promptFontSize = isPortrait ? `${Math.round(w / 14)}px` : `${Math.round(w / 36)}px`;
+		const promptFontSize = isPortrait ? `${Math.round(w / 16)}px` : `${Math.round(w / 36)}px`;
 
 		const prompt = this.add
 			.text(
